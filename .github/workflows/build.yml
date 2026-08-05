@@ -1,17 +1,19 @@
 name: Build Android APK
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
-  workflow_dispatch:
+      - master
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Build APK
         uses: ArtemSBulgakov/buildozer-action@v1
@@ -21,5 +23,5 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: APK
+          name: RutaDistribuidor-APK
           path: bin/*.apk
