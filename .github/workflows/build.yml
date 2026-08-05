@@ -13,10 +13,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Build with Buildozer Action
-        uses: sfoshtari/buildozer-action@v1.3
-        with:
-          command: buildozer -v android debug
+      - name: Build APK inside Docker
+        run: |
+          docker run --rm -v ${{ github.workspace }}:/home/user/hostpython kivy/buildozer buildozer -v android debug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
