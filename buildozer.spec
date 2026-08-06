@@ -19,8 +19,8 @@ source.include_exts = py,png,jpg,kv,atlas,db,sqlite3
 version = 0.1
 
 # (list) Application requirements
-# Incluye python3, kivy y sqlite3 para tu base de datos
-requirements = python3,kivy,sqlite3
+# Forzamos python3==3.11 para evitar errores de incompatibilidad con python-for-android
+requirements = python3==3.11,kivy,sqlite3
 
 # (str) Supported orientation (one of landscape, sensorLandscape, portrait or all)
 orientation = portrait
