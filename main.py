@@ -15,16 +15,6 @@ import sqlite3
 import datetime
 import socket
 
-# Solicitar permisos automáticamente si corre en Android (Bluetooth y Ubicación)
-if platform == 'android':
-    from android.permissions import request_permissions, Permission
-    request_permissions([
-        Permission.ACCESS_FINE_LOCATION,
-        Permission.ACCESS_COARSE_LOCATION,
-        Permission.BLUETOOTH_SCAN,
-        Permission.BLUETOOTH_CONNECT
-    ])
-
 Window.clearcolor = (0.95, 0.96, 0.98, 1)
 
 def inicializar_db():
@@ -460,7 +450,7 @@ class PuntoDeVenta(BoxLayout):
 
     def enviar_a_impresora_bluetooth(self, texto_ticket):
         # CAMBIA 'XX:XX:XX:XX:XX:XX' POR LA MAC REAL DE TU IMPRESORA MP210
-        mac_impressora = 'DC:0D:51:34:03:13' 
+        mac_impressora = 'XX:XX:XX:XX:XX:XX' 
         port = 1
         
         try:
@@ -516,6 +506,16 @@ class PuntoDeVenta(BoxLayout):
 
 class MiAppPOS(App):
     def build(self):
+        # Los permisos se piden de forma segura aquí adentro al iniciar la app
+        if platform == 'android':
+            from android.permissions import request_permissions, Permission
+            request_permissions([
+                Permission.ACCESS_FINE_LOCATION,
+                Permission.ACCESS_COARSE_LOCATION,
+                Permission.BLUETOOTH_SCAN,
+                Permission.BLUETOOTH_CONNECT
+            ])
+            
         self.title = "Sistema POS - Ruta de Distribución"
         inicializar_db()
         return PuntoDeVenta()
