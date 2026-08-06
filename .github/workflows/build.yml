@@ -18,14 +18,6 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Cache Buildozer global directory
-        uses: actions/cache@v4
-        with:
-          path: ~/.buildozer
-          key: ${{ runner.os }}-buildozer-${{ hashFiles('buildozer.spec') }}
-          restore-keys: |
-            ${{ runner.os }}-buildozer-
-
       - name: Install system dependencies
         run: |
           sudo apt-get update
@@ -54,8 +46,9 @@ jobs:
           pip install --upgrade pip
           pip install buildozer cython==0.29.33
 
-      - name: Build APK with Buildozer
+      - name: Clean and Build APK
         run: |
+          buildozer android clean
           yes | buildozer android debug
 
       - name: Upload APK Artifact
