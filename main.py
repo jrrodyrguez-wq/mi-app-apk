@@ -15,7 +15,7 @@ import sqlite3
 import datetime
 import socket
 
-# Solicitar permisos automáticamente si corre en Android
+# Solicitar permisos automáticamente si corre en Android (Bluetooth y Ubicación)
 if platform == 'android':
     from android.permissions import request_permissions, Permission
     request_permissions([
@@ -71,7 +71,7 @@ def inicializar_db():
 
 class RenglonCarrito(BoxLayout):
     def __init__(self, item, indice, callback_eliminar, **kwargs):
-        super().__init__(orientation='horizontal', size_hint_y=None, height=42, **kwargs) # Aumenté altura para que no esté apretado
+        super().__init__(orientation='horizontal', size_hint_y=None, height=42, **kwargs)
         self.item = item
         self.indice = indice
         self.callback_eliminar = callback_eliminar
@@ -105,7 +105,7 @@ class TarjetaProducto(BoxLayout):
     def __init__(self, producto, callback_agregar, callback_editar, **kwargs):
         super().__init__(orientation='horizontal', padding=12, spacing=10, **kwargs)
         self.size_hint_y = None
-        self.height = 90  # Tarjetas más amplias
+        self.height = 90
         self.producto = producto
         self.callback_agregar = callback_agregar
         self.callback_editar = callback_editar
@@ -168,7 +168,6 @@ class TarjetaProducto(BoxLayout):
 
 class PuntoDeVenta(BoxLayout):
     def __init__(self, **kwargs):
-        # Aumentamos el espaciado general entre paneles para que no se vea saturado
         super().__init__(orientation='horizontal', padding=15, spacing=18, **kwargs)
         self.carrito = []
         self.total = 0.0
@@ -206,7 +205,7 @@ class PuntoDeVenta(BoxLayout):
         self.scroll_cat.add_widget(self.grid_cat)
         seccion_catalogo.add_widget(self.scroll_cat)
 
-        # PANEL DERECHO: TICKET Y CLIENTE (Más amplio y con mejor separación)
+        # PANEL DERECHO: TICKET Y CLIENTE
         seccion_ticket = BoxLayout(orientation='vertical', size_hint=(0.45, 1), spacing=10)
         
         panel_derecho = BoxLayout(orientation='vertical', padding=18, spacing=12)
@@ -460,7 +459,7 @@ class PuntoDeVenta(BoxLayout):
         self.lbl_total.text = f"Total: ${self.total:.2f}"
 
     def enviar_a_impresora_bluetooth(self, texto_ticket):
-        # Reemplaza 'XX:XX:XX:XX:XX:XX' con la dirección MAC de tu impresora MP210
+        # CAMBIA 'XX:XX:XX:XX:XX:XX' POR LA MAC REAL DE TU IMPRESORA MP210
         mac_impressora = 'XX:XX:XX:XX:XX:XX' 
         port = 1
         
