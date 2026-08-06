@@ -460,7 +460,7 @@ class PuntoDeVenta(BoxLayout):
 
     def enviar_a_impresora_bluetooth(self, texto_ticket):
         # CAMBIA 'XX:XX:XX:XX:XX:XX' POR LA MAC REAL DE TU IMPRESORA MP210
-        mac_impressora = 'XX:XX:XX:XX:XX:XX' 
+        mac_impressora = 'DC:0D:51:34:03:13' 
         port = 1
         
         try:
