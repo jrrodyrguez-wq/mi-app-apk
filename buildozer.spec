@@ -29,7 +29,7 @@ orientation = portrait
 fullscreen = 0
 
 # (list) Permissions
-# permissions = INTERNET
+permissions = INTERNET, BLUETOOTH, BLUETOOTH_ADMIN, BLUETOOTH_CONNECT, BLUETOOTH_SCAN
 
 # (int) Target Android API
 android.api = 34
