@@ -518,6 +518,8 @@ class MiAppPOS(App):
     def build(self):
         if platform == 'android':
             from android.permissions import request_permissions, Permission
+            def callback(permissions, results):
+                pass
             request_permissions([
                 Permission.ACCESS_FINE_LOCATION,
                 Permission.ACCESS_COARSE_LOCATION,
@@ -525,7 +527,7 @@ class MiAppPOS(App):
                 Permission.BLUETOOTH_CONNECT,
                 Permission.BLUETOOTH_ADMIN,
                 Permission.BLUETOOTH
-            ])
+            ], callback)
             
         self.title = "Sistema POS - Ruta de Distribución"
         inicializar_db()
