@@ -100,12 +100,12 @@ class TarjetaProducto(BoxLayout):
             self.rect = RoundedRectangle(pos=self.pos, size=self.size, radius=[10])
         self.bind(pos=self.actualizar_canvas, size=self.actualizar_canvas)
 
-        box_info = BoxLayout(orientation='vertical', spacing=3, size_hint_x=0.7)
+        box_info = BoxLayout(orientation='vertical', spacing=3, size_hint_x=0.65)
         lbl_nombre = Label(
             text=f"[b]{producto['nombre']}[/b]", 
             markup=True, 
             color=(0.15, 0.2, 0.25, 1), 
-            font_size='14sp',
+            font_size='13sp',
             halign='left', 
             valign='middle'
         )
@@ -115,7 +115,7 @@ class TarjetaProducto(BoxLayout):
             text=f"${producto['precio']:.2f}", 
             color=(0.0, 0.6, 0.4, 1), 
             bold=True, 
-            font_size='14sp',
+            font_size='13sp',
             halign='left', 
             valign='middle'
         )
@@ -126,12 +126,12 @@ class TarjetaProducto(BoxLayout):
 
         btn_editar = Button(
             text="Editar",
-            size_hint=(0.3, 0.7),
+            size_hint=(0.35, 0.7),
             pos_hint={'center_y': 0.5},
             background_normal='',
             background_color=(0.9, 0.5, 0.1, 1),
             bold=True,
-            font_size='12sp'
+            font_size='11sp'
         )
         btn_editar.bind(on_release=lambda x: self.callback_editar(self.producto))
 
@@ -153,8 +153,8 @@ class TarjetaProducto(BoxLayout):
 
 class PuntoDeVenta(BoxLayout):
     def __init__(self, **kwargs):
-        # DISEÑO VERTICAL: Se apilan los elementos de arriba hacia abajo
-        super().__init__(orientation='vertical', padding=10, spacing=10, **kwargs)
+        # DISEÑO HORIZONTAL: Catálogo a la izquierda (50%), Ticket/Clientes a la derecha (50%)
+        super().__init__(orientation='horizontal', padding=10, spacing=10, **kwargs)
         self.carrito = []
         self.total = 0.0
 
@@ -162,21 +162,21 @@ class PuntoDeVenta(BoxLayout):
         self.cursor = self.conn.cursor()
         self.folio_actual = self.obtener_siguiente_folio()
 
-        # ---------------- SECCIÓN SUPERIOR: CATÁLOGO (50% de la pantalla) ----------------
-        seccion_catalogo = BoxLayout(orientation='vertical', size_hint=(1, 0.5), spacing=8)
+        # ---------------- SECCIÓN IZQUIERDA: CATÁLOGO ----------------
+        seccion_catalogo = BoxLayout(orientation='vertical', size_hint=(0.5, 1), spacing=8)
         
         header_cat = BoxLayout(orientation='horizontal', size_hint_y=None, height=45, spacing=10)
-        lbl_titulo = Label(text="Catálogo de Productos", font_size='16sp', bold=True, color=(0.1, 0.15, 0.2, 1), halign='left', valign='middle')
+        lbl_titulo = Label(text="Catálogo de Productos", font_size='15sp', bold=True, color=(0.1, 0.15, 0.2, 1), halign='left', valign='middle')
         lbl_titulo.bind(size=lbl_titulo.setter('text_size'))
         
         btn_nuevo_prod = Button(
             text="+ Producto", 
             size_hint_x=None,
-            width=105,
+            width=100,
             background_normal='', 
             background_color=(0.0, 0.5, 0.9, 1), 
             bold=True,
-            font_size='12sp'
+            font_size='11sp'
         )
         btn_nuevo_prod.bind(on_release=self.modal_agregar_producto)
         
@@ -190,8 +190,8 @@ class PuntoDeVenta(BoxLayout):
         self.scroll_cat.add_widget(self.grid_cat)
         seccion_catalogo.add_widget(self.scroll_cat)
 
-        # ---------------- SECCIÓN INFERIOR: TICKET Y CLIENTES (50% de la pantalla) ----------------
-        seccion_ticket = BoxLayout(orientation='vertical', size_hint=(1, 0.5), spacing=8)
+        # ---------------- SECCIÓN DERECHA: TICKET Y CLIENTES ----------------
+        seccion_ticket = BoxLayout(orientation='vertical', size_hint=(0.5, 1), spacing=8)
         
         panel_derecho = BoxLayout(orientation='vertical', padding=10, spacing=8)
         with panel_derecho.canvas.before:
@@ -202,7 +202,7 @@ class PuntoDeVenta(BoxLayout):
         self.lbl_folio = Label(
             text=f"[b]Folio #{self.folio_actual:04d}[/b]",
             markup=True,
-            font_size='14sp',
+            font_size='13sp',
             color=(0.1, 0.5, 0.8, 1),
             size_hint_y=None,
             height=25,
@@ -213,8 +213,8 @@ class PuntoDeVenta(BoxLayout):
         panel_derecho.add_widget(self.lbl_folio)
 
         # Fila de Cliente con espacio holgado para que el botón no se deforme
-        header_cliente = BoxLayout(orientation='horizontal', size_hint_y=None, height=40, spacing=8)
-        lbl_cli = Label(text="Cliente:", bold=True, color=(0.2, 0.25, 0.3, 1), font_size='13sp', size_hint_x=None, width=60, halign='left', valign='middle')
+        header_cliente = BoxLayout(orientation='horizontal', size_hint_y=None, height=40, spacing=6)
+        lbl_cli = Label(text="Cliente:", bold=True, color=(0.2, 0.25, 0.3, 1), font_size='12sp', size_hint_x=None, width=55, halign='left', valign='middle')
         lbl_cli.bind(size=lbl_cli.setter('text_size'))
         
         self.spinner_clientes = Spinner(
@@ -224,17 +224,17 @@ class PuntoDeVenta(BoxLayout):
             background_normal='',
             background_color=(0.92, 0.94, 0.96, 1),
             color=(0.1, 0.1, 0.1, 1),
-            font_size='13sp'
+            font_size='12sp'
         )
 
         btn_nuevo_cliente = Button(
             text="+ Cliente", 
             size_hint_x=None,
-            width=90,
+            width=85,
             background_normal='', 
             background_color=(0.0, 0.5, 0.9, 1),
             bold=True,
-            font_size='12sp'
+            font_size='11sp'
         )
         btn_nuevo_cliente.bind(on_release=self.modal_agregar_cliente)
         
@@ -255,7 +255,7 @@ class PuntoDeVenta(BoxLayout):
 
         self.lbl_total = Label(
             text="Total: $0.00", 
-            font_size='16sp', 
+            font_size='15sp', 
             bold=True, 
             color=(0.0, 0.6, 0.4, 1), 
             size_hint_y=None,
@@ -273,14 +273,14 @@ class PuntoDeVenta(BoxLayout):
             background_normal='', 
             background_color=(0.0, 0.7, 0.45, 1), 
             bold=True,
-            font_size='15sp'
+            font_size='14sp'
         )
         btn_imprimir.bind(on_release=self.generar_ticket)
         panel_derecho.add_widget(btn_imprimir)
 
         seccion_ticket.add_widget(panel_derecho)
 
-        # Añadir las dos secciones apiladas verticalmente
+        # Añadir las dos secciones lado a lado horizontalmente
         self.add_widget(seccion_catalogo)
         self.add_widget(seccion_ticket)
 
@@ -403,7 +403,7 @@ class PuntoDeVenta(BoxLayout):
             lbl_vacio = Label(
                 text="Carrito vacío", 
                 color=(0.3, 0.35, 0.4, 1),
-                font_size='13sp',
+                font_size='12sp',
                 size_hint_y=None,
                 height=35
             )
