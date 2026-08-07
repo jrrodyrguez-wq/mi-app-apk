@@ -9,11 +9,9 @@ from kivy.uix.popup import Popup
 from kivy.uix.spinner import Spinner
 from kivy.graphics import Color, RoundedRectangle
 from kivy.core.window import Window
-from kivy.clock import Clock
 from kivy.utils import platform
 import sqlite3
 import datetime
-import socket
 
 Window.clearcolor = (0.95, 0.96, 0.98, 1)
 
@@ -61,56 +59,54 @@ def inicializar_db():
 
 class RenglonCarrito(BoxLayout):
     def __init__(self, item, indice, callback_eliminar, **kwargs):
-        super().__init__(orientation='horizontal', size_hint_y=None, height=45, **kwargs)
+        super().__init__(orientation='horizontal', size_hint_y=None, height=38, spacing=5, **kwargs)
         self.item = item
         self.indice = indice
-        self.callback_eliminar = callback_eliminar
-        self._touch_ev = None
 
         lbl_item = Label(
-            text=f"• {item['nombre']}  —  ${item['precio']:.2f}",
+            text=f"{item['nombre']} (${item['precio']:.2f})",
             color=(0.2, 0.2, 0.2, 1),
-            font_size='15sp',
+            font_size='12sp',
             halign='left',
-            valign='middle'
+            valign='middle',
+            size_hint_x=0.75
         )
         lbl_item.bind(size=lbl_item.setter('text_size'))
+
+        btn_borrar = Button(
+            text="X",
+            size_hint_x=0.25,
+            background_normal='',
+            background_color=(0.9, 0.2, 0.2, 1),
+            bold=True,
+            font_size='12sp'
+        )
+        # Eliminación directa y segura con el botón X
+        btn_borrar.bind(on_release=lambda x: callback_eliminar(indice, item))
+
         self.add_widget(lbl_item)
-
-    def on_touch_down(self, touch):
-        if self.collide_point(*touch.pos):
-            self._touch_ev = Clock.schedule_once(self.activar_eliminacion, 0.6)
-            return True
-        return super().on_touch_down(touch)
-
-    def on_touch_up(self, touch):
-        if self._touch_ev:
-            self._touch_ev.cancel()
-        return super().on_touch_up(touch)
-
-    def activar_eliminacion(self, dt):
-        self.callback_elimininar(self.indice, self.item)
+        self.add_widget(btn_borrar)
 
 class TarjetaProducto(BoxLayout):
     def __init__(self, producto, callback_agregar, callback_editar, **kwargs):
-        super().__init__(orientation='horizontal', padding=12, spacing=12, **kwargs)
+        super().__init__(orientation='horizontal', padding=8, spacing=8, **kwargs)
         self.size_hint_y = None
-        self.height = 85
+        self.height = 75
         self.producto = producto
         self.callback_agregar = callback_agregar
         self.callback_editar = callback_editar
 
         with self.canvas.before:
             Color(1, 1, 1, 1)
-            self.rect = RoundedRectangle(pos=self.pos, size=self.size, radius=[12])
+            self.rect = RoundedRectangle(pos=self.pos, size=self.size, radius=[10])
         self.bind(pos=self.actualizar_canvas, size=self.actualizar_canvas)
 
-        box_info = BoxLayout(orientation='vertical', spacing=4, size_hint_x=0.75)
+        box_info = BoxLayout(orientation='vertical', spacing=2, size_hint_x=0.7)
         lbl_nombre = Label(
             text=f"[b]{producto['nombre']}[/b]", 
             markup=True, 
             color=(0.15, 0.2, 0.25, 1), 
-            font_size='16sp',
+            font_size='14sp',
             halign='left', 
             valign='middle'
         )
@@ -120,7 +116,7 @@ class TarjetaProducto(BoxLayout):
             text=f"${producto['precio']:.2f}", 
             color=(0.0, 0.6, 0.4, 1), 
             bold=True, 
-            font_size='16sp',
+            font_size='14sp',
             halign='left', 
             valign='middle'
         )
@@ -130,13 +126,13 @@ class TarjetaProducto(BoxLayout):
         box_info.add_widget(lbl_precio)
 
         btn_editar = Button(
-            text="Editar",
-            size_hint=(0.25, 0.8),
+            text="Edit",
+            size_hint=(0.3, 0.75),
             pos_hint={'center_y': 0.5},
             background_normal='',
             background_color=(0.9, 0.5, 0.1, 1),
             bold=True,
-            font_size='14sp'
+            font_size='12sp'
         )
         btn_editar.bind(on_release=lambda x: self.callback_editar(self.producto))
 
@@ -158,8 +154,8 @@ class TarjetaProducto(BoxLayout):
 
 class PuntoDeVenta(BoxLayout):
     def __init__(self, **kwargs):
-        # Diseño vertical optimizado para teléfonos celulares
-        super().__init__(orientation='vertical', padding=12, spacing=15, **kwargs)
+        # DISEÑO HORIZONTAL: Catálogo a la izquierda, Ticket a la derecha
+        super().__init__(orientation='horizontal', padding=10, spacing=10, **kwargs)
         self.carrito = []
         self.total = 0.0
 
@@ -168,21 +164,21 @@ class PuntoDeVenta(BoxLayout):
         
         self.folio_actual = self.obtener_siguiente_folio()
 
-        # SECCIÓN SUPERIOR: CATÁLOGO DE PRODUCTOS
-        seccion_catalogo = BoxLayout(orientation='vertical', size_hint=(1, 0.5), spacing=8)
+        # PANEL IZQUIERDO: CATÁLOGO (55% del ancho)
+        seccion_catalogo = BoxLayout(orientation='vertical', size_hint=(0.55, 1), spacing=8)
         
-        header_cat = BoxLayout(orientation='horizontal', size_hint_y=None, height=45, spacing=10)
-        lbl_titulo = Label(text="Catálogo de Productos", font_size='19sp', bold=True, color=(0.1, 0.15, 0.2, 1), halign='left', valign='middle')
+        header_cat = BoxLayout(orientation='horizontal', size_hint_y=None, height=40, spacing=6)
+        lbl_titulo = Label(text="Catálogo", font_size='16sp', bold=True, color=(0.1, 0.15, 0.2, 1), halign='left', valign='middle')
         lbl_titulo.bind(size=lbl_titulo.setter('text_size'))
         
         btn_nuevo_prod = Button(
-            text="+ Producto", 
+            text="+ Prod", 
             size_hint_x=None,
-            width=130,
+            width=75,
             background_normal='', 
             background_color=(0.0, 0.5, 0.9, 1), 
             bold=True,
-            font_size='14sp'
+            font_size='12sp'
         )
         btn_nuevo_prod.bind(on_release=self.modal_agregar_producto)
         
@@ -191,98 +187,97 @@ class PuntoDeVenta(BoxLayout):
         seccion_catalogo.add_widget(header_cat)
         
         self.scroll_cat = ScrollView(size_hint=(1, 1))
-        self.grid_cat = GridLayout(cols=1, spacing=10, size_hint_y=None)
+        self.grid_cat = GridLayout(cols=1, spacing=8, size_hint_y=None)
         self.grid_cat.bind(minimum_height=self.grid_cat.setter('height'))
 
         self.scroll_cat.add_widget(self.grid_cat)
         seccion_catalogo.add_widget(self.scroll_cat)
 
-        # SECCIÓN INFERIOR: TICKET, CLIENTE Y RESUMEN
-        seccion_ticket = BoxLayout(orientation='vertical', size_hint=(1, 0.5), spacing=8)
+        # PANEL DERECHO: TICKET Y CLIENTE (45% del ancho)
+        seccion_ticket = BoxLayout(orientation='vertical', size_hint=(0.45, 1), spacing=8)
         
-        panel_derecho = BoxLayout(orientation='vertical', padding=15, spacing=10)
+        panel_derecho = BoxLayout(orientation='vertical', padding=10, spacing=8)
         with panel_derecho.canvas.before:
             Color(1, 1, 1, 1)
-            self.rect_panel = RoundedRectangle(pos=panel_derecho.pos, size=panel_derecho.size, radius=[14])
+            self.rect_panel = RoundedRectangle(pos=panel_derecho.pos, size=panel_derecho.size, radius=[12])
         panel_derecho.bind(pos=self._actualizar_panel, size=self._actualizar_panel)
 
-        header_folio_cliente = BoxLayout(orientation='horizontal', size_hint_y=None, height=40, spacing=10)
         self.lbl_folio = Label(
-            text=f"[b]Folio #: {self.folio_actual:04d}[/b]",
+            text=f"[b]Folio #{self.folio_actual:04d}[/b]",
             markup=True,
-            font_size='16sp',
+            font_size='14sp',
             color=(0.1, 0.5, 0.8, 1),
+            size_hint_y=None,
+            height=25,
             halign='left',
             valign='middle'
         )
         self.lbl_folio.bind(size=self.lbl_folio.setter('text_size'))
+        panel_derecho.add_widget(self.lbl_folio)
+
+        header_cliente = BoxLayout(orientation='horizontal', size_hint_y=None, height=32, spacing=4)
+        lbl_cli = Label(text="Cliente:", bold=True, color=(0.2, 0.25, 0.3, 1), font_size='12sp', halign='left', valign='middle')
+        lbl_cli.bind(size=lbl_cli.setter('text_size'))
         
         btn_nuevo_cliente = Button(
-            text="+ Cliente", 
+            text="+ Cte", 
             size_hint_x=None,
-            width=110,
+            width=65,
             background_normal='', 
             background_color=(0.0, 0.5, 0.9, 1),
             bold=True,
-            font_size='13sp'
+            font_size='11sp'
         )
         btn_nuevo_cliente.bind(on_release=self.modal_agregar_cliente)
-        
-        header_folio_cliente.add_widget(self.lbl_folio)
-        header_folio_cliente.add_widget(btn_nuevo_cliente)
-        panel_derecho.add_widget(header_folio_cliente)
+        header_cliente.add_widget(lbl_cli)
+        header_cliente.add_widget(btn_nuevo_cliente)
+        panel_derecho.add_widget(header_cliente)
 
-        header_cliente_sel = BoxLayout(orientation='horizontal', size_hint_y=None, height=40, spacing=8)
-        lbl_cli = Label(text="Cliente:", bold=True, color=(0.2, 0.25, 0.3, 1), size_hint_x=0.25, halign='left', valign='middle')
-        lbl_cli.bind(size=lbl_cli.setter('text_size'))
-        
         self.spinner_clientes = Spinner(
             text="Seleccionar", 
-            size_hint_x=0.75,
+            size_hint_y=None,
+            height=35,
             background_normal='',
             background_color=(0.92, 0.94, 0.96, 1),
             color=(0.1, 0.1, 0.1, 1),
-            font_size='14sp'
+            font_size='12sp'
         )
-        header_cliente_sel.add_widget(lbl_cli)
-        header_cliente_sel.add_widget(self.spinner_clientes)
-        panel_derecho.add_widget(header_cliente_sel)
+        panel_derecho.add_widget(self.spinner_clientes)
 
-        lbl_resumen_titulo = Label(text="Resumen (Mantén presionado para borrar):", bold=True, color=(0.2, 0.25, 0.3, 1), size_hint_y=None, height=25, halign='left')
-        lbl_resumen_titulo.bind(size=lbl_resumen_titulo.setter('text_size'))
-        panel_derecho.add_widget(lbl_resumen_titulo)
+        lbl_resumen = Label(text="Resumen:", bold=True, color=(0.2, 0.25, 0.3, 1), size_hint_y=None, height=20, halign='left', font_size='12sp')
+        lbl_resumen.bind(size=lbl_resumen.setter('text_size'))
+        panel_derecho.add_widget(lbl_resumen)
         
         self.scroll_ticket = ScrollView(size_hint=(1, 1))
-        self.grid_ticket = GridLayout(cols=1, spacing=6, size_hint_y=None)
+        self.grid_ticket = GridLayout(cols=1, spacing=4, size_hint_y=None)
         self.grid_ticket.bind(minimum_height=self.grid_ticket.setter('height'))
         self.scroll_ticket.add_widget(self.grid_ticket)
         panel_derecho.add_widget(self.scroll_ticket)
 
-        footer_ticket = BoxLayout(orientation='horizontal', size_hint_y=None, height=50, spacing=10)
         self.lbl_total = Label(
             text="Total: $0.00", 
-            font_size='20sp', 
+            font_size='16sp', 
             bold=True, 
             color=(0.0, 0.6, 0.4, 1), 
-            halign='left',
+            size_hint_y=None,
+            height=28,
+            halign='right',
             valign='middle'
         )
         self.lbl_total.bind(size=self.lbl_total.setter('text_size'))
+        panel_derecho.add_widget(self.lbl_total)
 
         btn_imprimir = Button(
-            text="GENERAR TICKET", 
-            size_hint_x=None,
-            width=170,
+            text="IMPRIMIR", 
+            size_hint_y=None,
+            height=40,
             background_normal='', 
             background_color=(0.0, 0.7, 0.45, 1), 
             bold=True,
-            font_size='15sp'
+            font_size='14sp'
         )
         btn_imprimir.bind(on_release=self.generar_ticket)
-        
-        footer_ticket.add_widget(self.lbl_total)
-        footer_ticket.add_widget(btn_imprimir)
-        panel_derecho.add_widget(footer_ticket)
+        panel_derecho.add_widget(btn_imprimir)
 
         seccion_ticket.add_widget(panel_derecho)
 
@@ -332,7 +327,7 @@ class PuntoDeVenta(BoxLayout):
         box.add_widget(input_precio)
         box.add_widget(btn_guardar)
 
-        popup = Popup(title="Alta de Producto", content=box, size_hint=(0.8, 0.5))
+        popup = Popup(title="Alta de Producto", content=box, size_hint=(0.85, 0.5))
 
         def guardar(x):
             if input_nombre.text and input_precio.text:
@@ -349,14 +344,14 @@ class PuntoDeVenta(BoxLayout):
         box = BoxLayout(orientation='vertical', padding=15, spacing=12)
         input_nombre = TextInput(text=producto['nombre'], multiline=False, size_hint_y=0.25)
         input_precio = TextInput(text=str(producto['precio']), multiline=False, input_filter='float', size_hint_y=0.25)
-        btn_guardar = Button(text="Actualizar Producto", background_normal='', background_color=(0.9, 0.5, 0.1, 1), bold=True, size_hint_y=0.3)
+        btn_guardar = Button(text="Actualizar", background_normal='', background_color=(0.9, 0.5, 0.1, 1), bold=True, size_hint_y=0.3)
 
-        box.add_widget(Label(text=f"Modificar Producto (ID: {producto['id']})", bold=True, font_size='18sp'))
+        box.add_widget(Label(text=f"Editar (ID: {producto['id']})", bold=True, font_size='18sp'))
         box.add_widget(input_nombre)
         box.add_widget(input_precio)
         box.add_widget(btn_guardar)
 
-        popup = Popup(title="Editar Producto / Precio", content=box, size_hint=(0.8, 0.5))
+        popup = Popup(title="Modificar Producto", content=box, size_hint=(0.85, 0.5))
 
         def actualizar(x):
             if input_nombre.text and input_precio.text:
@@ -378,7 +373,7 @@ class PuntoDeVenta(BoxLayout):
         box.add_widget(input_nombre)
         box.add_widget(btn_guardar)
 
-        popup = Popup(title="Alta de Cliente", content=box, size_hint=(0.8, 0.45))
+        popup = Popup(title="Alta de Cliente", content=box, size_hint=(0.85, 0.45))
 
         def guardar(x):
             if input_nombre.text:
@@ -395,34 +390,10 @@ class PuntoDeVenta(BoxLayout):
         self.carrito.append(producto)
         self.actualizar_vista()
 
-    def modal_confirmar_eliminar(self, indice, item):
-        box = BoxLayout(orientation='vertical', padding=15, spacing=12)
-        lbl_msg = Label(
-            text=f"¿Quitar [b]{item['nombre']}[/b] del carrito?",
-            markup=True,
-            font_size='16sp',
-            halign='center'
-        )
-        btn_borrar = Button(
-            text="Sí, Eliminar",
-            background_normal='',
-            background_color=(0.9, 0.2, 0.2, 1),
-            bold=True,
-            size_hint_y=0.4
-        )
-
-        box.add_widget(lbl_msg)
-        box.add_widget(btn_borrar)
-
-        popup = Popup(title="Eliminar Producto", content=box, size_hint=(0.8, 0.4))
-
-        def borrar(x):
+    def eliminar_producto_carrito(self, indice, item):
+        if 0 <= indice < len(self.carrito):
             self.carrito.pop(indice)
             self.actualizar_vista()
-            popup.dismiss()
-
-        btn_borrar.bind(on_release=borrar)
-        popup.open()
 
     def actualizar_vista(self):
         self.grid_ticket.clear_widgets()
@@ -430,34 +401,82 @@ class PuntoDeVenta(BoxLayout):
 
         if not self.carrito:
             lbl_vacio = Label(
-                text="Sin productos en el carrito", 
+                text="Carrito vacío", 
                 color=(0.3, 0.35, 0.4, 1),
-                font_size='14sp',
+                font_size='12sp',
                 size_hint_y=None,
-                height=35
+                height=30
             )
             self.grid_ticket.add_widget(lbl_vacio)
         else:
             for idx, item in enumerate(self.carrito):
                 self.total += item['precio']
-                renglon = RenglonCarrito(item, idx, self.modal_confirmar_eliminar)
+                renglon = RenglonCarrito(item, idx, self.eliminar_producto_carrito)
                 self.grid_ticket.add_widget(renglon)
 
         self.lbl_total.text = f"Total: ${self.total:.2f}"
 
     def enviar_a_impresora_bluetooth(self, texto_ticket):
-        mac_impressora = 'DC:0D:51:34:03:13' # Cambia esto por tu MAC real
-        port = 1
-        
+        # 1. SI ESTAMOS EN LA PC DE DESARROLLO (Windows, Mac, Linux)
+        if platform != 'android':
+            print("--- MODO PC: SIMULANDO IMPRESIÓN ---")
+            print(texto_ticket)
+            print("------------------------------------")
+            return
+
+        # 2. SI ESTAMOS EN EL CELULAR ANDROID (Pyjnius)
         try:
-            s = socket.socket(socket.AF_BLUETOOTH, socket.SOCK_STREAM, socket.BTPROTO_RFCOMM)
-            s.connect((mac_impressora, port))
-            s.send(texto_ticket.encode('utf-8'))
-            s.send(b"\n\n\x1d\x56\x42\x00") 
-            s.close()
-            print("Ticket enviado correctamente.")
+            from jnius import autoclass
+            
+            BluetoothAdapter = autoclass('android.bluetooth.BluetoothAdapter')
+            UUID = autoclass('java.util.UUID')
+            
+            adapter = BluetoothAdapter.getDefaultAdapter()
+            
+            if not adapter or not adapter.isEnabled():
+                print("Error: Bluetooth apagado o no disponible en el celular.")
+                return
+
+            # Busca entre los dispositivos que YA vinculaste en los ajustes de tu celular
+            dispositivos_emparejados = adapter.getBondedDevices().toArray()
+            impresora = None
+            
+            # Buscará algo que suene a impresora ("printer", "pos", "mtp")
+            for device in dispositivos_emparejados:
+                nombre_b = device.getName().lower()
+                if "printer" in nombre_b or "pos" in nombre_b or "mtp" in nombre_b:
+                    impresora = device
+                    break
+            
+            # Si no encuentra por nombre, intenta tomar el primer dispositivo Bluetooth conectado
+            if not impresora and len(dispositivos_emparejados) > 0:
+                impresora = dispositivos_emparejados[0]
+
+            if impresora:
+                print(f"Conectando a impresora: {impresora.getName()}")
+                # UUID genérico para impresoras térmicas SPP (Serial Port Profile)
+                uuid = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
+                
+                socket = impresora.createRfcommSocketToServiceRecord(uuid)
+                adapter.cancelDiscovery()  # Obligatorio antes de conectar para evitar errores
+                socket.connect()
+                
+                output_stream = socket.getOutputStream()
+                
+                # Convertimos el texto a bytes y lo mandamos
+                output_stream.write(texto_ticket.encode('cp850', errors='replace'))
+                
+                # Un par de saltos de línea extra para que el papel salga bien
+                output_stream.write(b"\n\n\n")
+                
+                output_stream.flush()
+                socket.close()
+                print("¡Impresión enviada con éxito desde Android!")
+            else:
+                print("Error: No se detectó ninguna impresora emparejada en los ajustes de Android.")
+                
         except Exception as e:
-            print(f"Error al conectar con la impresora Bluetooth: {e}")
+            print(f"Error grave al intentar imprimir en Android: {str(e)}")
 
     def generar_ticket(self, instance):
         if not self.carrito:
@@ -480,17 +499,18 @@ class PuntoDeVenta(BoxLayout):
         ticket_texto += f"Pago: {tipo_pago}\n"
         ticket_texto += f"------------------------------------\n"
         for item in self.carrito:
-            ticket_texto += f"{item['nombre'][:20]:<20} ${item['precio']:>6.2f}\n"
+            ticket_texto += f"{item['nombre'][:18]:<18} ${item['precio']:>6.2f}\n"
         ticket_texto += f"------------------------------------\n"
         ticket_texto += f"TOTAL:              ${self.total:>6.2f}\n"
-        ticket_texto += f"============================\n\n\n"
+        ticket_texto += f"============================\n"
 
+        # Llamamos a la función que usa Pyjnius
         self.enviar_a_impresora_bluetooth(ticket_texto)
 
         popup = Popup(
             title="Ticket Generado",
-            content=Label(text=ticket_texto, font_size='14sp'),
-            size_hint=(0.8, 0.8)
+            content=Label(text=ticket_texto, font_size='13sp'),
+            size_hint=(0.85, 0.8)
         )
         popup.open()
 
@@ -498,17 +518,20 @@ class PuntoDeVenta(BoxLayout):
         self.actualizar_vista()
 
         self.folio_actual = self.obtener_siguiente_folio()
-        self.lbl_folio.text = f"[b]Folio #: {self.folio_actual:04d}[/b]"
+        self.lbl_folio.text = f"[b]Folio #{self.folio_actual:04d}[/b]"
 
 class MiAppPOS(App):
     def build(self):
+        # Permisos nativos requeridos al abrir la app
         if platform == 'android':
             from android.permissions import request_permissions, Permission
             request_permissions([
                 Permission.ACCESS_FINE_LOCATION,
                 Permission.ACCESS_COARSE_LOCATION,
                 Permission.BLUETOOTH_SCAN,
-                Permission.BLUETOOTH_CONNECT
+                Permission.BLUETOOTH_CONNECT,
+                Permission.BLUETOOTH_ADMIN,
+                Permission.BLUETOOTH
             ])
             
         self.title = "Sistema POS - Ruta de Distribución"
