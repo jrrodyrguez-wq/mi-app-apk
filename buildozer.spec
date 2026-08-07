@@ -23,7 +23,7 @@ version = 0.1
 requirements = python3,kivy,sqlite3,pyjnius
 
 # (str) Supported orientation (cambiado a portrait para diseño vertical)
-orientation = portrait
+orientation = landscape
 
 # (bool) Indicate if the application should be fullscreen or not
 fullscreen = 0
