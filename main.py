@@ -61,7 +61,7 @@ def inicializar_db():
 
 class RenglonCarrito(BoxLayout):
     def __init__(self, item, indice, callback_eliminar, **kwargs):
-        super().__init__(orientation='horizontal', size_hint_y=None, height=42, **kwargs)
+        super().__init__(orientation='horizontal', size_hint_y=None, height=45, **kwargs)
         self.item = item
         self.indice = indice
         self.callback_eliminar = callback_eliminar
@@ -89,13 +89,13 @@ class RenglonCarrito(BoxLayout):
         return super().on_touch_up(touch)
 
     def activar_eliminacion(self, dt):
-        self.callback_eliminar(self.indice, self.item)
+        self.callback_elimininar(self.indice, self.item)
 
 class TarjetaProducto(BoxLayout):
     def __init__(self, producto, callback_agregar, callback_editar, **kwargs):
-        super().__init__(orientation='horizontal', padding=12, spacing=10, **kwargs)
+        super().__init__(orientation='horizontal', padding=12, spacing=12, **kwargs)
         self.size_hint_y = None
-        self.height = 90
+        self.height = 85
         self.producto = producto
         self.callback_agregar = callback_agregar
         self.callback_editar = callback_editar
@@ -105,7 +105,7 @@ class TarjetaProducto(BoxLayout):
             self.rect = RoundedRectangle(pos=self.pos, size=self.size, radius=[12])
         self.bind(pos=self.actualizar_canvas, size=self.actualizar_canvas)
 
-        box_info = BoxLayout(orientation='vertical', spacing=4)
+        box_info = BoxLayout(orientation='vertical', spacing=4, size_hint_x=0.75)
         lbl_nombre = Label(
             text=f"[b]{producto['nombre']}[/b]", 
             markup=True, 
@@ -120,7 +120,7 @@ class TarjetaProducto(BoxLayout):
             text=f"${producto['precio']:.2f}", 
             color=(0.0, 0.6, 0.4, 1), 
             bold=True, 
-            font_size='17sp',
+            font_size='16sp',
             halign='left', 
             valign='middle'
         )
@@ -131,7 +131,7 @@ class TarjetaProducto(BoxLayout):
 
         btn_editar = Button(
             text="Editar",
-            size_hint=(0.28, 0.8),
+            size_hint=(0.25, 0.8),
             pos_hint={'center_y': 0.5},
             background_normal='',
             background_color=(0.9, 0.5, 0.1, 1),
@@ -158,7 +158,8 @@ class TarjetaProducto(BoxLayout):
 
 class PuntoDeVenta(BoxLayout):
     def __init__(self, **kwargs):
-        super().__init__(orientation='horizontal', padding=15, spacing=18, **kwargs)
+        # Diseño vertical optimizado para teléfonos celulares
+        super().__init__(orientation='vertical', padding=12, spacing=15, **kwargs)
         self.carrito = []
         self.total = 0.0
 
@@ -167,16 +168,17 @@ class PuntoDeVenta(BoxLayout):
         
         self.folio_actual = self.obtener_siguiente_folio()
 
-        # PANEL IZQUIERDO: CATÁLOGO
-        seccion_catalogo = BoxLayout(orientation='vertical', size_hint=(0.55, 1), spacing=12)
+        # SECCIÓN SUPERIOR: CATÁLOGO DE PRODUCTOS
+        seccion_catalogo = BoxLayout(orientation='vertical', size_hint=(1, 0.5), spacing=8)
         
-        header_cat = BoxLayout(orientation='horizontal', size_hint_y=0.09, spacing=10)
-        lbl_titulo = Label(text="Catálogo de Productos", font_size='21sp', bold=True, color=(0.1, 0.15, 0.2, 1), halign='left')
+        header_cat = BoxLayout(orientation='horizontal', size_hint_y=None, height=45, spacing=10)
+        lbl_titulo = Label(text="Catálogo de Productos", font_size='19sp', bold=True, color=(0.1, 0.15, 0.2, 1), halign='left', valign='middle')
         lbl_titulo.bind(size=lbl_titulo.setter('text_size'))
         
         btn_nuevo_prod = Button(
             text="+ Producto", 
-            size_hint_x=0.38, 
+            size_hint_x=None,
+            width=130,
             background_normal='', 
             background_color=(0.0, 0.5, 0.9, 1), 
             bold=True,
@@ -188,104 +190,99 @@ class PuntoDeVenta(BoxLayout):
         header_cat.add_widget(btn_nuevo_prod)
         seccion_catalogo.add_widget(header_cat)
         
-        self.scroll_cat = ScrollView(size_hint=(1, 0.91))
-        self.grid_cat = GridLayout(cols=1, spacing=12, size_hint_y=None)
+        self.scroll_cat = ScrollView(size_hint=(1, 1))
+        self.grid_cat = GridLayout(cols=1, spacing=10, size_hint_y=None)
         self.grid_cat.bind(minimum_height=self.grid_cat.setter('height'))
 
         self.scroll_cat.add_widget(self.grid_cat)
         seccion_catalogo.add_widget(self.scroll_cat)
 
-        # PANEL DERECHO: TICKET Y CLIENTE
-        seccion_ticket = BoxLayout(orientation='vertical', size_hint=(0.45, 1), spacing=10)
+        # SECCIÓN INFERIOR: TICKET, CLIENTE Y RESUMEN
+        seccion_ticket = BoxLayout(orientation='vertical', size_hint=(1, 0.5), spacing=8)
         
-        panel_derecho = BoxLayout(orientation='vertical', padding=18, spacing=12)
+        panel_derecho = BoxLayout(orientation='vertical', padding=15, spacing=10)
         with panel_derecho.canvas.before:
             Color(1, 1, 1, 1)
             self.rect_panel = RoundedRectangle(pos=panel_derecho.pos, size=panel_derecho.size, radius=[14])
         panel_derecho.bind(pos=self._actualizar_panel, size=self._actualizar_panel)
 
+        header_folio_cliente = BoxLayout(orientation='horizontal', size_hint_y=None, height=40, spacing=10)
         self.lbl_folio = Label(
-            text=f"[b]Nota / Folio #: {self.folio_actual:04d}[/b]",
+            text=f"[b]Folio #: {self.folio_actual:04d}[/b]",
             markup=True,
-            font_size='18sp',
+            font_size='16sp',
             color=(0.1, 0.5, 0.8, 1),
-            size_hint_y=0.06,
-            halign='left'
+            halign='left',
+            valign='middle'
         )
         self.lbl_folio.bind(size=self.lbl_folio.setter('text_size'))
-        panel_derecho.add_widget(self.lbl_folio)
-
-        header_cliente = BoxLayout(orientation='horizontal', size_hint_y=0.07, spacing=8)
-        lbl_cli = Label(text="Cliente / Tienda:", bold=True, color=(0.2, 0.25, 0.3, 1), halign='left', font_size='14sp')
-        lbl_cli.bind(size=lbl_cli.setter('text_size'))
         
         btn_nuevo_cliente = Button(
             text="+ Cliente", 
-            size_hint_x=0.4, 
+            size_hint_x=None,
+            width=110,
             background_normal='', 
             background_color=(0.0, 0.5, 0.9, 1),
             bold=True,
             font_size='13sp'
         )
         btn_nuevo_cliente.bind(on_release=self.modal_agregar_cliente)
-        header_cliente.add_widget(lbl_cli)
-        header_cliente.add_widget(btn_nuevo_cliente)
-        panel_derecho.add_widget(header_cliente)
+        
+        header_folio_cliente.add_widget(self.lbl_folio)
+        header_folio_cliente.add_widget(btn_nuevo_cliente)
+        panel_derecho.add_widget(header_folio_cliente)
 
+        header_cliente_sel = BoxLayout(orientation='horizontal', size_hint_y=None, height=40, spacing=8)
+        lbl_cli = Label(text="Cliente:", bold=True, color=(0.2, 0.25, 0.3, 1), size_hint_x=0.25, halign='left', valign='middle')
+        lbl_cli.bind(size=lbl_cli.setter('text_size'))
+        
         self.spinner_clientes = Spinner(
             text="Seleccionar", 
-            size_hint_y=0.08,
+            size_hint_x=0.75,
             background_normal='',
             background_color=(0.92, 0.94, 0.96, 1),
             color=(0.1, 0.1, 0.1, 1),
             font_size='14sp'
         )
-        panel_derecho.add_widget(self.spinner_clientes)
+        header_cliente_sel.add_widget(lbl_cli)
+        header_cliente_sel.add_widget(self.spinner_clientes)
+        panel_derecho.add_widget(header_cliente_sel)
 
-        lbl_pago = Label(text="Método de Pago:", bold=True, color=(0.2, 0.25, 0.3, 1), size_hint_y=0.05, halign='left', font_size='14sp')
-        lbl_pago.bind(size=lbl_pago.setter('text_size'))
-        panel_derecho.add_widget(lbl_pago)
-
-        self.spinner_pago = Spinner(
-            text="Contado",
-            values=("Contado", "Crédito / Fiado"),
-            size_hint_y=0.08,
-            background_normal='',
-            background_color=(0.92, 0.94, 0.96, 1),
-            color=(0.1, 0.1, 0.1, 1),
-            font_size='14sp'
-        )
-        panel_derecho.add_widget(self.spinner_pago)
-
-        panel_derecho.add_widget(Label(text="Resumen (Mantén presionado para borrar):", bold=True, color=(0.2, 0.25, 0.3, 1), size_hint_y=0.05, halign='left', font_size='13sp'))
+        lbl_resumen_titulo = Label(text="Resumen (Mantén presionado para borrar):", bold=True, color=(0.2, 0.25, 0.3, 1), size_hint_y=None, height=25, halign='left')
+        lbl_resumen_titulo.bind(size=lbl_resumen_titulo.setter('text_size'))
+        panel_derecho.add_widget(lbl_resumen_titulo)
         
-        self.scroll_ticket = ScrollView(size_hint=(1, 0.34))
-        self.grid_ticket = GridLayout(cols=1, spacing=8, size_hint_y=None)
+        self.scroll_ticket = ScrollView(size_hint=(1, 1))
+        self.grid_ticket = GridLayout(cols=1, spacing=6, size_hint_y=None)
         self.grid_ticket.bind(minimum_height=self.grid_ticket.setter('height'))
         self.scroll_ticket.add_widget(self.grid_ticket)
         panel_derecho.add_widget(self.scroll_ticket)
 
+        footer_ticket = BoxLayout(orientation='horizontal', size_hint_y=None, height=50, spacing=10)
         self.lbl_total = Label(
             text="Total: $0.00", 
-            font_size='22sp', 
+            font_size='20sp', 
             bold=True, 
             color=(0.0, 0.6, 0.4, 1), 
-            size_hint_y=0.08,
-            halign='right'
+            halign='left',
+            valign='middle'
         )
         self.lbl_total.bind(size=self.lbl_total.setter('text_size'))
-        panel_derecho.add_widget(self.lbl_total)
 
         btn_imprimir = Button(
             text="GENERAR TICKET", 
-            size_hint_y=0.13, 
+            size_hint_x=None,
+            width=170,
             background_normal='', 
             background_color=(0.0, 0.7, 0.45, 1), 
             bold=True,
-            font_size='16sp'
+            font_size='15sp'
         )
         btn_imprimir.bind(on_release=self.generar_ticket)
-        panel_derecho.add_widget(btn_imprimir)
+        
+        footer_ticket.add_widget(self.lbl_total)
+        footer_ticket.add_widget(btn_imprimir)
+        panel_derecho.add_widget(footer_ticket)
 
         seccion_ticket.add_widget(panel_derecho)
 
@@ -335,7 +332,7 @@ class PuntoDeVenta(BoxLayout):
         box.add_widget(input_precio)
         box.add_widget(btn_guardar)
 
-        popup = Popup(title="Alta de Producto", content=box, size_hint=(0.7, 0.5))
+        popup = Popup(title="Alta de Producto", content=box, size_hint=(0.8, 0.5))
 
         def guardar(x):
             if input_nombre.text and input_precio.text:
@@ -359,7 +356,7 @@ class PuntoDeVenta(BoxLayout):
         box.add_widget(input_precio)
         box.add_widget(btn_guardar)
 
-        popup = Popup(title="Editar Producto / Precio", content=box, size_hint=(0.7, 0.5))
+        popup = Popup(title="Editar Producto / Precio", content=box, size_hint=(0.8, 0.5))
 
         def actualizar(x):
             if input_nombre.text and input_precio.text:
@@ -381,7 +378,7 @@ class PuntoDeVenta(BoxLayout):
         box.add_widget(input_nombre)
         box.add_widget(btn_guardar)
 
-        popup = Popup(title="Alta de Cliente", content=box, size_hint=(0.7, 0.45))
+        popup = Popup(title="Alta de Cliente", content=box, size_hint=(0.8, 0.45))
 
         def guardar(x):
             if input_nombre.text:
@@ -417,7 +414,7 @@ class PuntoDeVenta(BoxLayout):
         box.add_widget(lbl_msg)
         box.add_widget(btn_borrar)
 
-        popup = Popup(title="Eliminar Producto", content=box, size_hint=(0.7, 0.4))
+        popup = Popup(title="Eliminar Producto", content=box, size_hint=(0.8, 0.4))
 
         def borrar(x):
             self.carrito.pop(indice)
@@ -449,8 +446,7 @@ class PuntoDeVenta(BoxLayout):
         self.lbl_total.text = f"Total: ${self.total:.2f}"
 
     def enviar_a_impresora_bluetooth(self, texto_ticket):
-        # CAMBIA 'XX:XX:XX:XX:XX:XX' POR LA MAC REAL DE TU IMPRESORA MP210
-        mac_impressora = 'XX:XX:XX:XX:XX:XX' 
+        mac_impressora = 'DC:0D:51:34:03:13' # Cambia esto por tu MAC real
         port = 1
         
         try:
@@ -468,7 +464,7 @@ class PuntoDeVenta(BoxLayout):
             return
 
         cliente = self.spinner_clientes.text
-        tipo_pago = self.spinner_pago.text
+        tipo_pago = "Contado"
         fecha = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 
         self.cursor.execute(
@@ -494,7 +490,7 @@ class PuntoDeVenta(BoxLayout):
         popup = Popup(
             title="Ticket Generado",
             content=Label(text=ticket_texto, font_size='14sp'),
-            size_hint=(0.75, 0.75)
+            size_hint=(0.8, 0.8)
         )
         popup.open()
 
@@ -502,11 +498,10 @@ class PuntoDeVenta(BoxLayout):
         self.actualizar_vista()
 
         self.folio_actual = self.obtener_siguiente_folio()
-        self.lbl_folio.text = f"[b]Nota / Folio #: {self.folio_actual:04d}[/b]"
+        self.lbl_folio.text = f"[b]Folio #: {self.folio_actual:04d}[/b]"
 
 class MiAppPOS(App):
     def build(self):
-        # Los permisos se piden de forma segura aquí adentro al iniciar la app
         if platform == 'android':
             from android.permissions import request_permissions, Permission
             request_permissions([
