@@ -13,7 +13,6 @@ from kivy.utils import platform
 import sqlite3
 import datetime
 
-# Fondo general limpio en tonos claros
 Window.clearcolor = (0.95, 0.96, 0.98, 1)
 
 def inicializar_db():
@@ -60,29 +59,28 @@ def inicializar_db():
 
 class RenglonCarrito(BoxLayout):
     def __init__(self, item, indice, callback_eliminar, **kwargs):
-        super().__init__(orientation='horizontal', size_hint_y=None, height=38, spacing=5, **kwargs)
+        super().__init__(orientation='horizontal', size_hint_y=None, height=40, spacing=8, **kwargs)
         self.item = item
         self.indice = indice
 
         lbl_item = Label(
             text=f"{item['nombre']} (${item['precio']:.2f})",
             color=(0.2, 0.2, 0.2, 1),
-            font_size='12sp',
+            font_size='13sp',
             halign='left',
             valign='middle',
-            size_hint_x=0.75
+            size_hint_x=0.8
         )
         lbl_item.bind(size=lbl_item.setter('text_size'))
 
         btn_borrar = Button(
             text="X",
-            size_hint_x=0.25,
+            size_hint_x=0.2,
             background_normal='',
             background_color=(0.9, 0.2, 0.2, 1),
             bold=True,
             font_size='12sp'
         )
-        # Eliminación directa y segura con el botón X para evitar cierres inesperados
         btn_borrar.bind(on_release=lambda x: callback_eliminar(indice, item))
 
         self.add_widget(lbl_item)
@@ -90,7 +88,7 @@ class RenglonCarrito(BoxLayout):
 
 class TarjetaProducto(BoxLayout):
     def __init__(self, producto, callback_agregar, callback_editar, **kwargs):
-        super().__init__(orientation='horizontal', padding=8, spacing=8, **kwargs)
+        super().__init__(orientation='horizontal', padding=10, spacing=10, **kwargs)
         self.size_hint_y = None
         self.height = 75
         self.producto = producto
@@ -102,7 +100,7 @@ class TarjetaProducto(BoxLayout):
             self.rect = RoundedRectangle(pos=self.pos, size=self.size, radius=[10])
         self.bind(pos=self.actualizar_canvas, size=self.actualizar_canvas)
 
-        box_info = BoxLayout(orientation='vertical', spacing=2, size_hint_x=0.7)
+        box_info = BoxLayout(orientation='vertical', spacing=3, size_hint_x=0.7)
         lbl_nombre = Label(
             text=f"[b]{producto['nombre']}[/b]", 
             markup=True, 
@@ -127,8 +125,8 @@ class TarjetaProducto(BoxLayout):
         box_info.add_widget(lbl_precio)
 
         btn_editar = Button(
-            text="Edit",
-            size_hint=(0.3, 0.75),
+            text="Editar",
+            size_hint=(0.3, 0.7),
             pos_hint={'center_y': 0.5},
             background_normal='',
             background_color=(0.9, 0.5, 0.1, 1),
@@ -155,27 +153,26 @@ class TarjetaProducto(BoxLayout):
 
 class PuntoDeVenta(BoxLayout):
     def __init__(self, **kwargs):
-        # DISEÑO HORIZONTAL: Catálogo a la izquierda, Ticket a la derecha
-        super().__init__(orientation='horizontal', padding=10, spacing=10, **kwargs)
+        # DISEÑO VERTICAL: Se apilan los elementos de arriba hacia abajo
+        super().__init__(orientation='vertical', padding=10, spacing=10, **kwargs)
         self.carrito = []
         self.total = 0.0
 
         self.conn = sqlite3.connect("ruta.db")
         self.cursor = self.conn.cursor()
-        
         self.folio_actual = self.obtener_siguiente_folio()
 
-        # PANEL IZQUIERDO: CATÁLOGO (55% del ancho)
-        seccion_catalogo = BoxLayout(orientation='vertical', size_hint=(0.55, 1), spacing=8)
+        # ---------------- SECCIÓN SUPERIOR: CATÁLOGO (50% de la pantalla) ----------------
+        seccion_catalogo = BoxLayout(orientation='vertical', size_hint=(1, 0.5), spacing=8)
         
-        header_cat = BoxLayout(orientation='horizontal', size_hint_y=None, height=40, spacing=6)
-        lbl_titulo = Label(text="Catálogo", font_size='16sp', bold=True, color=(0.1, 0.15, 0.2, 1), halign='left', valign='middle')
+        header_cat = BoxLayout(orientation='horizontal', size_hint_y=None, height=45, spacing=10)
+        lbl_titulo = Label(text="Catálogo de Productos", font_size='16sp', bold=True, color=(0.1, 0.15, 0.2, 1), halign='left', valign='middle')
         lbl_titulo.bind(size=lbl_titulo.setter('text_size'))
         
         btn_nuevo_prod = Button(
-            text="+ Prod", 
+            text="+ Producto", 
             size_hint_x=None,
-            width=75,
+            width=105,
             background_normal='', 
             background_color=(0.0, 0.5, 0.9, 1), 
             bold=True,
@@ -190,12 +187,11 @@ class PuntoDeVenta(BoxLayout):
         self.scroll_cat = ScrollView(size_hint=(1, 1))
         self.grid_cat = GridLayout(cols=1, spacing=8, size_hint_y=None)
         self.grid_cat.bind(minimum_height=self.grid_cat.setter('height'))
-
         self.scroll_cat.add_widget(self.grid_cat)
         seccion_catalogo.add_widget(self.scroll_cat)
 
-        # PANEL DERECHO: TICKET Y CLIENTE (45% del ancho)
-        seccion_ticket = BoxLayout(orientation='vertical', size_hint=(0.45, 1), spacing=8)
+        # ---------------- SECCIÓN INFERIOR: TICKET Y CLIENTES (50% de la pantalla) ----------------
+        seccion_ticket = BoxLayout(orientation='vertical', size_hint=(1, 0.5), spacing=8)
         
         panel_derecho = BoxLayout(orientation='vertical', padding=10, spacing=8)
         with panel_derecho.canvas.before:
@@ -216,36 +212,38 @@ class PuntoDeVenta(BoxLayout):
         self.lbl_folio.bind(size=self.lbl_folio.setter('text_size'))
         panel_derecho.add_widget(self.lbl_folio)
 
-        header_cliente = BoxLayout(orientation='horizontal', size_hint_y=None, height=32, spacing=4)
-        lbl_cli = Label(text="Cliente:", bold=True, color=(0.2, 0.25, 0.3, 1), font_size='12sp', halign='left', valign='middle')
+        # Fila de Cliente con espacio holgado para que el botón no se deforme
+        header_cliente = BoxLayout(orientation='horizontal', size_hint_y=None, height=40, spacing=8)
+        lbl_cli = Label(text="Cliente:", bold=True, color=(0.2, 0.25, 0.3, 1), font_size='13sp', size_hint_x=None, width=60, halign='left', valign='middle')
         lbl_cli.bind(size=lbl_cli.setter('text_size'))
         
-        btn_nuevo_cliente = Button(
-            text="+ Cte", 
-            size_hint_x=None,
-            width=65,
-            background_normal='', 
-            background_color=(0.0, 0.5, 0.9, 1),
-            bold=True,
-            font_size='11sp'
-        )
-        btn_nuevo_cliente.bind(on_release=self.modal_agregar_cliente)
-        header_cliente.add_widget(lbl_cli)
-        header_cliente.add_widget(btn_nuevo_cliente)
-        panel_derecho.add_widget(header_cliente)
-
         self.spinner_clientes = Spinner(
             text="Seleccionar", 
-            size_hint_y=None,
-            height=35,
+            size_hint_x=1,
+            height=38,
             background_normal='',
             background_color=(0.92, 0.94, 0.96, 1),
             color=(0.1, 0.1, 0.1, 1),
+            font_size='13sp'
+        )
+
+        btn_nuevo_cliente = Button(
+            text="+ Cliente", 
+            size_hint_x=None,
+            width=90,
+            background_normal='', 
+            background_color=(0.0, 0.5, 0.9, 1),
+            bold=True,
             font_size='12sp'
         )
-        panel_derecho.add_widget(self.spinner_clientes)
+        btn_nuevo_cliente.bind(on_release=self.modal_agregar_cliente)
+        
+        header_cliente.add_widget(lbl_cli)
+        header_cliente.add_widget(self.spinner_clientes)
+        header_cliente.add_widget(btn_nuevo_cliente)
+        panel_derecho.add_widget(header_cliente)
 
-        lbl_resumen = Label(text="Resumen:", bold=True, color=(0.2, 0.25, 0.3, 1), size_hint_y=None, height=20, halign='left', font_size='12sp')
+        lbl_resumen = Label(text="Resumen del Carrito:", bold=True, color=(0.2, 0.25, 0.3, 1), size_hint_y=None, height=22, halign='left', font_size='12sp')
         lbl_resumen.bind(size=lbl_resumen.setter('text_size'))
         panel_derecho.add_widget(lbl_resumen)
         
@@ -261,7 +259,7 @@ class PuntoDeVenta(BoxLayout):
             bold=True, 
             color=(0.0, 0.6, 0.4, 1), 
             size_hint_y=None,
-            height=28,
+            height=30,
             halign='right',
             valign='middle'
         )
@@ -271,17 +269,18 @@ class PuntoDeVenta(BoxLayout):
         btn_imprimir = Button(
             text="IMPRIMIR", 
             size_hint_y=None,
-            height=40,
+            height=45,
             background_normal='', 
             background_color=(0.0, 0.7, 0.45, 1), 
             bold=True,
-            font_size='14sp'
+            font_size='15sp'
         )
         btn_imprimir.bind(on_release=self.generar_ticket)
         panel_derecho.add_widget(btn_imprimir)
 
         seccion_ticket.add_widget(panel_derecho)
 
+        # Añadir las dos secciones apiladas verticalmente
         self.add_widget(seccion_catalogo)
         self.add_widget(seccion_ticket)
 
@@ -323,7 +322,7 @@ class PuntoDeVenta(BoxLayout):
         input_precio = TextInput(hint_text="Precio (ej. 12.50)", multiline=False, input_filter='float', size_hint_y=0.25)
         btn_guardar = Button(text="Guardar Producto", background_normal='', background_color=(0.0, 0.7, 0.45, 1), bold=True, size_hint_y=0.3)
 
-        box.add_widget(Label(text="Nuevo Producto", bold=True, font_size='18sp'))
+        box.add_widget(Label(text="Nuevo Producto", bold=True, font_size='18sp', color=(0.1,0.1,0.1,1)))
         box.add_widget(input_nombre)
         box.add_widget(input_precio)
         box.add_widget(btn_guardar)
@@ -347,7 +346,7 @@ class PuntoDeVenta(BoxLayout):
         input_precio = TextInput(text=str(producto['precio']), multiline=False, input_filter='float', size_hint_y=0.25)
         btn_guardar = Button(text="Actualizar", background_normal='', background_color=(0.9, 0.5, 0.1, 1), bold=True, size_hint_y=0.3)
 
-        box.add_widget(Label(text=f"Editar (ID: {producto['id']})", bold=True, font_size='18sp'))
+        box.add_widget(Label(text=f"Editar (ID: {producto['id']})", bold=True, font_size='18sp', color=(0.1,0.1,0.1,1)))
         box.add_widget(input_nombre)
         box.add_widget(input_precio)
         box.add_widget(btn_guardar)
@@ -370,7 +369,7 @@ class PuntoDeVenta(BoxLayout):
         input_nombre = TextInput(hint_text="Nombre de la tienda/cliente", multiline=False, size_hint_y=0.3)
         btn_guardar = Button(text="Guardar Cliente", background_normal='', background_color=(0.0, 0.7, 0.45, 1), bold=True, size_hint_y=0.3)
 
-        box.add_widget(Label(text="Nuevo Cliente", bold=True, font_size='18sp'))
+        box.add_widget(Label(text="Nuevo Cliente", bold=True, font_size='18sp', color=(0.1,0.1,0.1,1)))
         box.add_widget(input_nombre)
         box.add_widget(btn_guardar)
 
@@ -404,9 +403,9 @@ class PuntoDeVenta(BoxLayout):
             lbl_vacio = Label(
                 text="Carrito vacío", 
                 color=(0.3, 0.35, 0.4, 1),
-                font_size='12sp',
+                font_size='13sp',
                 size_hint_y=None,
-                height=30
+                height=35
             )
             self.grid_ticket.add_widget(lbl_vacio)
         else:
@@ -417,44 +416,51 @@ class PuntoDeVenta(BoxLayout):
 
         self.lbl_total.text = f"Total: ${self.total:.2f}"
 
+    def mostrar_alerta(self, titulo, mensaje):
+        pop_box = BoxLayout(orientation='vertical', padding=15, spacing=10)
+        pop_box.add_widget(Label(text=mensaje, font_size='14sp', halign='center'))
+        btn_cerrar = Button(text="Aceptar", size_hint_y=None, height=40, background_color=(0.0, 0.5, 0.9, 1))
+        
+        popup = Popup(title=titulo, content=pop_box, size_hint=(0.8, 0.4))
+        btn_cerrar.bind(on_release=popup.dismiss)
+        pop_box.add_widget(btn_cerrar)
+        popup.open()
+
     def enviar_a_impresora_bluetooth(self, texto_ticket):
-        # 1. SI ESTAMOS EN LA PC DE DESARROLLO (Windows, Mac, Linux)
         if platform != 'android':
             print("--- MODO PC: SIMULANDO IMPRESIÓN ---")
             print(texto_ticket)
-            print("------------------------------------")
             return
 
-        # 2. SI ESTAMOS EN EL CELULAR ANDROID (Pyjnius)
         try:
             from jnius import autoclass
-            
             BluetoothAdapter = autoclass('android.bluetooth.BluetoothAdapter')
             UUID = autoclass('java.util.UUID')
             
             adapter = BluetoothAdapter.getDefaultAdapter()
-            
             if not adapter or not adapter.isEnabled():
-                print("Error: Bluetooth apagado o no disponible en el celular.")
+                self.mostrar_alerta("Bluetooth Apagado", "Por favor enciende el Bluetooth de tu celular.")
                 return
 
             dispositivos_emparejados = adapter.getBondedDevices().toArray()
+            if len(dispositivos_emparejados) == 0:
+                self.mostrar_alerta("Sin dispositivos", "No hay impresoras vinculadas en los ajustes Bluetooth.")
+                return
+
             impresora = None
-            
             for device in dispositivos_emparejados:
                 nombre_b = device.getName().lower()
-                if "printer" in nombre_b or "pos" in nombre_b or "mtp" in nombre_b:
+                if any(k in nombre_b for k in ["mp210", "printer", "pos", "mtp", "rpt", "jp", "blue", "thermal", "RP"]):
                     impresora = device
                     break
             
-            if not impresora and len(dispositivos_emparejados) > 0:
+            if not impresora:
                 impresora = dispositivos_emparejados[0]
 
             if impresora:
-                print(f"Conectando a impresora: {impresora.getName()}")
+                nombre_impresora = impresora.getName()
                 uuid = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
-                
-                socket = impresora.createRfcommSocketToServiceRecord(uuid)
+                socket = impresora.createInsecureRfcommSocketToServiceRecord(uuid)
                 adapter.cancelDiscovery()
                 socket.connect()
                 
@@ -463,15 +469,16 @@ class PuntoDeVenta(BoxLayout):
                 output_stream.write(b"\n\n\n")
                 output_stream.flush()
                 socket.close()
-                print("¡Impresión enviada con éxito desde Android!")
-            else:
-                print("Error: No se detectó ninguna impresora emparejada en los ajustes de Android.")
                 
+                self.mostrar_alerta("Impresión Exitosa", f"Ticket enviado a: {nombre_impresora}")
+            else:
+                self.mostrar_alerta("Error", "No se pudo seleccionar ninguna impresora vinculada.")
         except Exception as e:
-            print(f"Error grave al intentar imprimir en Android: {str(e)}")
+            self.mostrar_alerta("Error de Conexión Bluetooth", f"Detalle: {str(e)}")
 
     def generar_ticket(self, instance):
         if not self.carrito:
+            self.mostrar_alerta("Aviso", "El carrito está vacío.")
             return
 
         cliente = self.spinner_clientes.text
@@ -498,16 +505,8 @@ class PuntoDeVenta(BoxLayout):
 
         self.enviar_a_impresora_bluetooth(ticket_texto)
 
-        popup = Popup(
-            title="Ticket Generado",
-            content=Label(text=ticket_texto, font_size='13sp'),
-            size_hint=(0.85, 0.8)
-        )
-        popup.open()
-
         self.carrito = []
         self.actualizar_vista()
-
         self.folio_actual = self.obtener_siguiente_folio()
         self.lbl_folio.text = f"[b]Folio #{self.folio_actual:04d}[/b]"
 
