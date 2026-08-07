@@ -153,7 +153,6 @@ class TarjetaProducto(BoxLayout):
 
 class PuntoDeVenta(BoxLayout):
     def __init__(self, **kwargs):
-        # DISEÑO HORIZONTAL: Catálogo a la izquierda (50%), Ticket/Clientes a la derecha (50%)
         super().__init__(orientation='horizontal', padding=10, spacing=10, **kwargs)
         self.carrito = []
         self.total = 0.0
@@ -212,7 +211,6 @@ class PuntoDeVenta(BoxLayout):
         self.lbl_folio.bind(size=self.lbl_folio.setter('text_size'))
         panel_derecho.add_widget(self.lbl_folio)
 
-        # Fila de Cliente con espacio holgado para que el botón no se deforme
         header_cliente = BoxLayout(orientation='horizontal', size_hint_y=None, height=40, spacing=6)
         lbl_cli = Label(text="Cliente:", bold=True, color=(0.2, 0.25, 0.3, 1), font_size='12sp', size_hint_x=None, width=55, halign='left', valign='middle')
         lbl_cli.bind(size=lbl_cli.setter('text_size'))
@@ -280,7 +278,6 @@ class PuntoDeVenta(BoxLayout):
 
         seccion_ticket.add_widget(panel_derecho)
 
-        # Añadir las dos secciones lado a lado horizontalmente
         self.add_widget(seccion_catalogo)
         self.add_widget(seccion_ticket)
 
@@ -442,26 +439,28 @@ class PuntoDeVenta(BoxLayout):
                 self.mostrar_alerta("Bluetooth Apagado", "Por favor enciende el Bluetooth de tu celular.")
                 return
 
-            dispositivos_emparejados = adapter.getBondedDevices().toArray()
-            if len(dispositivos_emparejados) == 0:
-                self.mostrar_alerta("Sin dispositivos", "No hay impresoras vinculadas en los ajustes Bluetooth.")
+            bonded_devices = adapter.getBondedDevices().toArray()
+            if len(bonded_devices) == 0:
+                self.mostrar_alerta("Sin dispositivos", "Vincula tu impresora MP210 en los ajustes Bluetooth de Android primero.")
                 return
 
             impresora = None
-            for device in dispositivos_emparejados:
+            for device in bonded_devices:
                 nombre_b = device.getName().lower()
-                if any(k in nombre_b for k in ["mp210", "printer", "pos", "mtp", "rpt", "jp", "blue", "thermal", "RP"]):
+                if "mp210" in nombre_b or any(k in nombre_b for k in ["printer", "pos", "thermal", "rpt", "mtp"]):
                     impresora = device
                     break
             
             if not impresora:
-                impresora = dispositivos_emparejados[0]
+                impresora = bonded_devices[0]
 
             if impresora:
                 nombre_impresora = impresora.getName()
                 uuid = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
+                
                 socket = impresora.createInsecureRfcommSocketToServiceRecord(uuid)
                 adapter.cancelDiscovery()
+                
                 socket.connect()
                 
                 output_stream = socket.getOutputStream()
@@ -472,7 +471,7 @@ class PuntoDeVenta(BoxLayout):
                 
                 self.mostrar_alerta("Impresión Exitosa", f"Ticket enviado a: {nombre_impresora}")
             else:
-                self.mostrar_alerta("Error", "No se pudo seleccionar ninguna impresora vinculada.")
+                self.mostrar_alerta("Error", "No se encontró la impresora MP210 vinculada.")
         except Exception as e:
             self.mostrar_alerta("Error de Conexión Bluetooth", f"Detalle: {str(e)}")
 
