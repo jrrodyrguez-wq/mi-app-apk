@@ -1,7 +1,7 @@
 [app]
 
 # (str) Title of your application
-title = Sistema POS Ruta
+title = Generador De Tickets
 
 # (str) Package name
 package.name = sistemapos
