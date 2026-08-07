@@ -22,8 +22,8 @@ version = 0.1
 # Incluimos pyjnius para que la conexión Bluetooth nativa funcione
 requirements = python3,kivy,sqlite3,pyjnius
 
-# (str) Supported orientation (landscape para que el diseño de dos columnas luzca bien)
-orientation = landscape
+# (str) Supported orientation (cambiado a portrait para diseño vertical)
+orientation = portrait
 
 # (bool) Indicate if the application should be fullscreen or not
 fullscreen = 0
