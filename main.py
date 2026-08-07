@@ -439,7 +439,12 @@ class PuntoDeVenta(BoxLayout):
                 self.mostrar_alerta("Bluetooth Apagado", "Por favor enciende el Bluetooth de tu celular.")
                 return
 
-            bonded_devices = adapter.getBondedDevices().toArray()
+            try:
+                bonded_devices = adapter.getBondedDevices().toArray()
+            except Exception:
+                self.mostrar_alerta("Permiso Denegado", "Android bloqueó el Bluetooth.\nVe a Ajustes de tu celular > Aplicaciones > Tu App > Permisos y activa 'Dispositivos cercanos' o 'Bluetooth'.")
+                return
+
             if len(bonded_devices) == 0:
                 self.mostrar_alerta("Sin dispositivos", "Vincula tu impresora MP210 en los ajustes Bluetooth de Android primero.")
                 return
@@ -473,7 +478,7 @@ class PuntoDeVenta(BoxLayout):
             else:
                 self.mostrar_alerta("Error", "No se encontró la impresora MP210 vinculada.")
         except Exception as e:
-            self.mostrar_alerta("Error de Conexión Bluetooth", f"Detalle: {str(e)}")
+            self.mostrar_alerta("Error de Conexión", "No se pudo establecer comunicación con la impresora. Asegúrate de que esté encendida y vinculada.")
 
     def generar_ticket(self, instance):
         if not self.carrito:
