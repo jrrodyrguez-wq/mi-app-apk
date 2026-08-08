@@ -29,7 +29,7 @@ orientation = landscape
 fullscreen = 0
 
 # (list) Permissions necesarios para Bluetooth y Android moderno
-permissions = INTERNET, BLUETOOTH, BLUETOOTH_ADMIN, BLUETOOTH_CONNECT, BLUETOOTH_SCAN, ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION
+android.permissions = INTERNET, BLUETOOTH, BLUETOOTH_ADMIN, BLUETOOTH_CONNECT, BLUETOOTH_SCAN, ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION
 
 # (int) Target Android API
 android.api = 34
