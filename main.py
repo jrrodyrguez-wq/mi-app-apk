@@ -1,518 +1,1638 @@
+import sqlite3
+from datetime import datetime
 from kivy.app import App
+from kivy.lang import Builder
 from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.gridlayout import GridLayout
+from kivy.uix.screenmanager import ScreenManager, Screen
+from kivy.properties import StringProperty
+from kivy.utils import platform
+from kivy.metrics import dp
 from kivy.uix.label import Label
 from kivy.uix.button import Button
-from kivy.uix.textinput import TextInput
-from kivy.uix.scrollview import ScrollView
 from kivy.uix.popup import Popup
-from kivy.uix.spinner import Spinner
-from kivy.graphics import Color, RoundedRectangle
-from kivy.core.window import Window
-from kivy.utils import platform
-import sqlite3
-import datetime
+from kivy.uix.scrollview import ScrollView
+from kivy.graphics import Color, Rectangle
 
-Window.clearcolor = (0.95, 0.96, 0.98, 1)
+if platform == 'android':
+    from jnius import autoclass
+    BluetoothAdapter = autoclass('android.bluetooth.BluetoothAdapter')
+    UUID = autoclass('java.util.UUID')
 
+# Inicializar Base de Datos SQLite y Tablas
 def inicializar_db():
-    conn = sqlite3.connect("ruta.db")
-    cursor = conn.cursor()
+    conexion = sqlite3.connect("sistemapos.db")
+    cursor = conexion.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS productos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre TEXT,
+            precio REAL,
+            stock INTEGER
+        )
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS clientes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre TEXT,
+            telefono TEXT
+        )
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS recibos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            cliente TEXT,
+            total REAL,
+            fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS detalle_recibos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            recibo_id INTEGER,
+            producto TEXT,
+            cantidad INTEGER,
+            precio REAL,
+            subtotal REAL
+        )
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS gastos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            descripcion TEXT,
+            monto REAL,
+            fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS reportes_guardados (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            fecha_reporte DATE,
+            contenido TEXT,
+            fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    conexion.commit()
+    conexion.close()
+
+KV = '''
+<MenuDrawer>:
+    orientation: 'horizontal'
     
-    cursor.execute('''CREATE TABLE IF NOT EXISTS productos (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        nombre TEXT NOT NULL,
-                        precio REAL NOT NULL)''')
+    # Panel lateral deslizable (Menú Hamburguesa)
+    BoxLayout:
+        id: nav_panel
+        orientation: 'vertical'
+        size_hint_x: None
+        width: dp(0)
+        canvas.before:
+            Color:
+                rgba: 0.96, 0.96, 0.96, 1
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        
+        # Cabecera del Menú Lateral
+        BoxLayout:
+            size_hint_y: None
+            height: dp(120)
+            padding: 15
+            canvas.before:
+                Color:
+                    rgba: 0.15, 0.45, 0.75, 1
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+            Label:
+                text: "Impresion Termica\\nBluetooth"
+                color: 1, 1, 1, 1
+                font_size: '18sp'
+                bold: True
+
+        ScrollView:
+            BoxLayout:
+                orientation: 'vertical'
+                size_hint_y: None
+                height: self.minimum_height
+                spacing: dp(2)
+                padding: [0, 10, 0, 10]
+
+                Label:
+                    text: "POS"
+                    color: 0.4, 0.4, 0.4, 1
+                    size_hint_y: None
+                    height: dp(30)
+                    font_size: '14sp'
+                    bold: True
+                    padding_x: 15
+
+                Button:
+                    text: "   Impresión de Recibos"
+                    halign: 'left'
+                    valign: 'middle'
+                    size_hint_y: None
+                    height: dp(50)
+                    background_color: 1, 1, 1, 1
+                    color: 0.1, 0.1, 0.1, 1
+                    font_size: '16sp'
+                    on_press: root.cambiar_pantalla('recibos')
+
+                Button:
+                    text: "   Clientes"
+                    halign: 'left'
+                    valign: 'middle'
+                    size_hint_y: None
+                    height: dp(50)
+                    background_color: 1, 1, 1, 1
+                    color: 0.1, 0.1, 0.1, 1
+                    font_size: '16sp'
+                    on_press: root.cambiar_pantalla('clientes')
+
+                Button:
+                    text: "   Productos"
+                    halign: 'left'
+                    valign: 'middle'
+                    size_hint_y: None
+                    height: dp(50)
+                    background_color: 1, 1, 1, 1
+                    color: 0.1, 0.1, 0.1, 1
+                    font_size: '16sp'
+                    on_press: root.cambiar_pantalla('productos')
+
+                Button:
+                    text: "   Inventarios"
+                    halign: 'left'
+                    valign: 'middle'
+                    size_hint_y: None
+                    height: dp(50)
+                    background_color: 1, 1, 1, 1
+                    color: 0.1, 0.1, 0.1, 1
+                    font_size: '16sp'
+                    on_press: root.cambiar_pantalla('inventarios')
+
+                Button:
+                    text: "   Reporte del Día"
+                    halign: 'left'
+                    valign: 'middle'
+                    size_hint_y: None
+                    height: dp(50)
+                    background_color: 1, 1, 1, 1
+                    color: 0.1, 0.1, 0.1, 1
+                    font_size: '16sp'
+                    on_press: root.cambiar_pantalla('informes')
+
+                Button:
+                    text: "   Ventas Diarias (Historial)"
+                    halign: 'left'
+                    valign: 'middle'
+                    size_hint_y: None
+                    height: dp(50)
+                    background_color: 1, 1, 1, 1
+                    color: 0.1, 0.1, 0.1, 1
+                    font_size: '16sp'
+                    on_press: root.cambiar_pantalla('ventas_diarias')
+
+                Button:
+                    text: "   Productos Más Vendidos"
+                    halign: 'left'
+                    valign: 'middle'
+                    size_hint_y: None
+                    height: dp(50)
+                    background_color: 1, 1, 1, 1
+                    color: 0.1, 0.1, 0.1, 1
+                    font_size: '16sp'
+                    on_press: root.cambiar_pantalla('mas_vendidos')
+
+                Button:
+                    text: "   Reportes Guardados"
+                    halign: 'left'
+                    valign: 'middle'
+                    size_hint_y: None
+                    height: dp(50)
+                    background_color: 1, 1, 1, 1
+                    color: 0.1, 0.1, 0.1, 1
+                    font_size: '16sp'
+                    on_press: root.cambiar_pantalla('reportes_guardados')
+
+                Button:
+                    text: "   Gastos / Compras"
+                    halign: 'left'
+                    valign: 'middle'
+                    size_hint_y: None
+                    height: dp(50)
+                    background_color: 1, 1, 1, 1
+                    color: 0.1, 0.1, 0.1, 1
+                    font_size: '16sp'
+                    on_press: root.cambiar_pantalla('gastos')
+
+                Button:
+                    text: "   Recibos anteriores"
+                    halign: 'left'
+                    valign: 'middle'
+                    size_hint_y: None
+                    height: dp(50)
+                    background_color: 1, 1, 1, 1
+                    color: 0.1, 0.1, 0.1, 1
+                    font_size: '16sp'
+                    on_press: root.cambiar_pantalla('recibos_anteriores')
+
+    # Área principal de la aplicación
+    BoxLayout:
+        orientation: 'vertical'
+        
+        # Barra superior con botón de menú
+        BoxLayout:
+            size_hint_y: None
+            height: dp(55)
+            canvas.before:
+                Color:
+                    rgba: 0.15, 0.45, 0.75, 1
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+            Button:
+                text: "≡"
+                size_hint_x: None
+                width: dp(60)
+                font_size: '26sp'
+                background_color: 0, 0, 0, 0
+                color: 1, 1, 1, 1
+                on_press: root.toggle_menu()
+            Label:
+                text: root.titulo_pantalla
+                color: 1, 1, 1, 1
+                font_size: '18sp'
+                bold: True
+                halign: 'left'
+                valign: 'middle'
+            
+        ScreenManager:
+            id: sm
+            
+            # 1. IMPRESION DE RECIBOS
+            Screen:
+                name: 'recibos'
+                BoxLayout:
+                    orientation: 'vertical'
+                    padding: dp(15)
+                    spacing: dp(10)
+                    canvas.before:
+                        Color:
+                            rgba: 0.92, 0.92, 0.92, 1
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
+
+                    BoxLayout:
+                        size_hint_y: None
+                        height: dp(55)
+                        spacing: dp(10)
+                        Spinner:
+                            id: spinner_cliente
+                            text: "Seleccionar Cliente"
+                            values: []
+                            font_size: '16sp'
+                            background_color: 1, 1, 1, 1
+                            color: 0, 0, 0, 1
+                            size_hint_x: 0.75
+                        Button:
+                            text: "Recargar"
+                            size_hint_x: 0.25
+                            background_color: 0.2, 0.5, 0.8, 1
+                            color: 1, 1, 1, 1
+                            bold: True
+                            font_size: '14sp'
+                            on_press: root.cargar_datos_db()
+
+                    BoxLayout:
+                        size_hint_y: None
+                        height: dp(55)
+                        spacing: dp(10)
+                        Spinner:
+                            id: spinner_producto
+                            text: "Seleccionar Producto"
+                            values: []
+                            font_size: '16sp'
+                            background_color: 1, 1, 1, 1
+                            color: 0, 0, 0, 1
+                            size_hint_x: 0.55
+                        TextInput:
+                            id: txt_cantidad
+                            text: "1"
+                            hint_text: "Cant"
+                            input_filter: 'int'
+                            font_size: '16sp'
+                            foreground_color: 0, 0, 0, 1
+                            background_color: 1, 1, 1, 1
+                            cursor_color: 0, 0, 0, 1
+                            size_hint_x: 0.2
+                        Button:
+                            text: "+"
+                            size_hint_x: 0.25
+                            background_color: 0.1, 0.6, 0.2, 1
+                            color: 1, 1, 1, 1
+                            bold: True
+                            font_size: '22sp'
+                            on_press: root.agregar_al_carrito(spinner_producto.text, txt_cantidad.text)
+
+                    ScrollView:
+                        BoxLayout:
+                            id: carrito_layout
+                            orientation: 'vertical'
+                            size_hint_y: None
+                            height: self.minimum_height
+                            spacing: dp(5)
+                            Label:
+                                text: "Carrito vacío"
+                                color: 0.3, 0.3, 0.3, 1
+                                font_size: '16sp'
+                                size_hint_y: None
+                                height: dp(40)
+
+                    BoxLayout:
+                        size_hint_y: None
+                        height: dp(130)
+                        orientation: 'vertical'
+                        canvas.before:
+                            Color:
+                                rgba: 1, 1, 1, 1
+                            Rectangle:
+                                pos: self.pos
+                                size: self.size
+                        padding: dp(10)
+                        spacing: dp(5)
+                        Label:
+                            id: lbl_subtotal
+                            text: "Subtotal: $ 0.00"
+                            color: 0, 0, 0, 1
+                            font_size: '16sp'
+                            halign: 'right'
+                        Label:
+                            id: lbl_total
+                            text: "Total: $ 0.00"
+                            color: 0, 0, 0, 1
+                            font_size: '20sp'
+                            bold: True
+                        BoxLayout:
+                            spacing: dp(10)
+                            size_hint_y: None
+                            height: dp(50)
+                            Button:
+                                text: "IMPRIMIR"
+                                background_color: 0.1, 0.6, 0.2, 1
+                                color: 1, 1, 1, 1
+                                font_size: '16sp'
+                                bold: True
+                                on_press: root.imprimir_ticket()
+                            Button:
+                                text: "GUARDAR"
+                                background_color: 0.2, 0.4, 0.7, 1
+                                color: 1, 1, 1, 1
+                                font_size: '16sp'
+                                bold: True
+                                on_press: root.guardar_venta()
+
+            # 2. CLIENTES
+            Screen:
+                name: 'clientes'
+                ScrollView:
+                    BoxLayout:
+                        orientation: 'vertical'
+                        padding: dp(20)
+                        spacing: dp(15)
+                        size_hint_y: None
+                        height: self.minimum_height
+                        canvas.before:
+                            Color:
+                                rgba: 0.92, 0.92, 0.92, 1
+                            Rectangle:
+                                pos: self.pos
+                                size: self.size
                         
-    cursor.execute('''CREATE TABLE IF NOT EXISTS clientes (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        nombre_tienda TEXT NOT NULL)''')
+                        Label:
+                            text: "Gestión de Clientes"
+                            color: 0, 0, 0, 1
+                            font_size: '22sp'
+                            bold: True
+                            size_hint_y: None
+                            height: dp(40)
+                        
+                        Label:
+                            text: "Nuevo Cliente:"
+                            color: 0.3, 0.3, 0.3, 1
+                            font_size: '14sp'
+                            bold: True
+                            size_hint_y: None
+                            height: dp(25)
 
-    cursor.execute('''CREATE TABLE IF NOT EXISTS ventas (
-                        folio INTEGER PRIMARY KEY AUTOINCREMENT,
-                        cliente TEXT,
-                        metodo_pago TEXT,
-                        total REAL,
-                        fecha TEXT)''')
+                        TextInput:
+                            id: cliente_nombre
+                            hint_text: "Nombre del cliente"
+                            foreground_color: 0, 0, 0, 1
+                            background_color: 1, 1, 1, 1
+                            cursor_color: 0, 0, 0, 1
+                            size_hint_y: None
+                            height: dp(50)
+                            font_size: '16sp'
 
-    cursor.execute("SELECT COUNT(*) FROM productos")
-    if cursor.fetchone()[0] == 0:
-        cursor.executemany("INSERT INTO productos (nombre, precio) VALUES (?, ?)", [
-            ("Bubbaloo C/50", 45.00),
-            ("Tutsi Pop C/24", 68.00),
-            ("Mazapan C/30", 110.00),
-            ("Pelon Pelo Rico C/12", 85.00),
-            ("Galletas Marias 170g", 18.50),
-            ("Aceite 1L", 42.00)
-        ])
+                        TextInput:
+                            id: cliente_telefono
+                            hint_text: "Teléfono"
+                            foreground_color: 0, 0, 0, 1
+                            background_color: 1, 1, 1, 1
+                            cursor_color: 0, 0, 0, 1
+                            size_hint_y: None
+                            height: dp(50)
+                            font_size: '16sp'
 
-    cursor.execute("SELECT COUNT(*) FROM clientes")
-    if cursor.fetchone()[0] == 0:
-        cursor.executemany("INSERT INTO clientes (nombre_tienda) VALUES (?)", [
-            ("Abarrotes Don Pedro",),
-            ("Tiendita La Esquina",),
-            ("Miscelánea Express",)
-        ])
+                        Button:
+                            text: "Guardar Cliente"
+                            size_hint_y: None
+                            height: dp(50)
+                            background_color: 0.2, 0.5, 0.8, 1
+                            color: 1, 1, 1, 1
+                            font_size: '16sp'
+                            bold: True
+                            on_press: root.guardar_cliente(cliente_nombre.text, cliente_telefono.text)
 
-    conn.commit()
-    conn.close()
+                        Label:
+                            text: "--------------------------------------------------"
+                            color: 0.5, 0.5, 0.5, 1
+                            size_hint_y: None
+                            height: dp(20)
 
-class RenglonCarrito(BoxLayout):
-    def __init__(self, item, indice, callback_eliminar, **kwargs):
-        super().__init__(orientation='horizontal', size_hint_y=None, height=40, spacing=8, **kwargs)
-        self.item = item
-        self.indice = indice
+                        Label:
+                            text: "Modificar / Editar Cliente Existente:"
+                            color: 0.3, 0.3, 0.3, 1
+                            font_size: '14sp'
+                            bold: True
+                            size_hint_y: None
+                            height: dp(25)
 
-        lbl_item = Label(
-            text=f"{item['nombre']} (${item['precio']:.2f})",
-            color=(0.2, 0.2, 0.2, 1),
-            font_size='13sp',
-            halign='left',
-            valign='middle',
-            size_hint_x=0.8
-        )
-        lbl_item.bind(size=lbl_item.setter('text_size'))
+                        Spinner:
+                            id: spinner_editar_cliente
+                            text: "Seleccionar cliente a editar"
+                            values: []
+                            font_size: '16sp'
+                            background_color: 1, 1, 1, 1
+                            color: 0, 0, 0, 1
+                            size_hint_y: None
+                            height: dp(50)
+                            on_text: root.cargar_datos_cliente_editar(self.text)
 
-        btn_borrar = Button(
-            text="X",
-            size_hint_x=0.2,
-            background_normal='',
-            background_color=(0.9, 0.2, 0.2, 1),
-            bold=True,
-            font_size='12sp'
-        )
-        btn_borrar.bind(on_release=lambda x: callback_eliminar(indice, item))
+                        TextInput:
+                            id: cliente_edit_nombre
+                            hint_text: "Nuevo nombre"
+                            foreground_color: 0, 0, 0, 1
+                            background_color: 1, 1, 1, 1
+                            cursor_color: 0, 0, 0, 1
+                            size_hint_y: None
+                            height: dp(50)
+                            font_size: '16sp'
 
-        self.add_widget(lbl_item)
-        self.add_widget(btn_borrar)
+                        TextInput:
+                            id: cliente_edit_telefono
+                            hint_text: "Nuevo teléfono"
+                            foreground_color: 0, 0, 0, 1
+                            background_color: 1, 1, 1, 1
+                            cursor_color: 0, 0, 0, 1
+                            size_hint_y: None
+                            height: dp(50)
+                            font_size: '16sp'
 
-class TarjetaProducto(BoxLayout):
-    def __init__(self, producto, callback_agregar, callback_editar, **kwargs):
-        super().__init__(orientation='horizontal', padding=10, spacing=10, **kwargs)
-        self.size_hint_y = None
-        self.height = 75
-        self.producto = producto
-        self.callback_agregar = callback_agregar
-        self.callback_editar = callback_editar
+                        Button:
+                            text: "Actualizar Cliente"
+                            size_hint_y: None
+                            height: dp(50)
+                            background_color: 0.1, 0.6, 0.2, 1
+                            color: 1, 1, 1, 1
+                            font_size: '16sp'
+                            bold: True
+                            on_press: root.actualizar_cliente(spinner_editar_cliente.text, cliente_edit_nombre.text, cliente_edit_telefono.text)
 
-        with self.canvas.before:
-            Color(1, 1, 1, 1)
-            self.rect = RoundedRectangle(pos=self.pos, size=self.size, radius=[10])
-        self.bind(pos=self.actualizar_canvas, size=self.actualizar_canvas)
+            # 3. PRODUCTOS
+            Screen:
+                name: 'productos'
+                ScrollView:
+                    BoxLayout:
+                        orientation: 'vertical'
+                        padding: dp(20)
+                        spacing: dp(15)
+                        size_hint_y: None
+                        height: self.minimum_height
+                        canvas.before:
+                            Color:
+                                rgba: 0.92, 0.92, 0.92, 1
+                            Rectangle:
+                                pos: self.pos
+                                size: self.size
+                        
+                        Label:
+                            text: "Gestión de Productos"
+                            color: 0, 0, 0, 1
+                            font_size: '22sp'
+                            bold: True
+                            size_hint_y: None
+                            height: dp(40)
+                        
+                        TextInput:
+                            id: prod_nombre
+                            hint_text: "Nombre del producto"
+                            foreground_color: 0, 0, 0, 1
+                            background_color: 1, 1, 1, 1
+                            cursor_color: 0, 0, 0, 1
+                            size_hint_y: None
+                            height: dp(50)
+                            font_size: '16sp'
 
-        box_info = BoxLayout(orientation='vertical', spacing=3, size_hint_x=0.65)
-        lbl_nombre = Label(
-            text=f"[b]{producto['nombre']}[/b]", 
-            markup=True, 
-            color=(0.15, 0.2, 0.25, 1), 
-            font_size='13sp',
-            halign='left', 
-            valign='middle'
-        )
-        lbl_nombre.bind(size=lbl_nombre.setter('text_size'))
+                        TextInput:
+                            id: prod_precio
+                            hint_text: "Precio ($)"
+                            input_filter: 'float'
+                            foreground_color: 0, 0, 0, 1
+                            background_color: 1, 1, 1, 1
+                            cursor_color: 0, 0, 0, 1
+                            size_hint_y: None
+                            height: dp(50)
+                            font_size: '16sp'
 
-        lbl_precio = Label(
-            text=f"${producto['precio']:.2f}", 
-            color=(0.0, 0.6, 0.4, 1), 
-            bold=True, 
-            font_size='13sp',
-            halign='left', 
-            valign='middle'
-        )
-        lbl_precio.bind(size=lbl_precio.setter('text_size'))
+                        TextInput:
+                            id: prod_stock
+                            hint_text: "Stock / Cantidad inicial"
+                            input_filter: 'int'
+                            foreground_color: 0, 0, 0, 1
+                            background_color: 1, 1, 1, 1
+                            cursor_color: 0, 0, 0, 1
+                            size_hint_y: None
+                            height: dp(50)
+                            font_size: '16sp'
 
-        box_info.add_widget(lbl_nombre)
-        box_info.add_widget(lbl_precio)
+                        Button:
+                            text: "Registrar Producto"
+                            size_hint_y: None
+                            height: dp(50)
+                            background_color: 0.1, 0.6, 0.2, 1
+                            color: 1, 1, 1, 1
+                            font_size: '16sp'
+                            bold: True
+                            on_press: root.guardar_producto(prod_nombre.text, prod_precio.text, prod_stock.text)
 
-        btn_editar = Button(
-            text="Editar",
-            size_hint=(0.35, 0.7),
-            pos_hint={'center_y': 0.5},
-            background_normal='',
-            background_color=(0.9, 0.5, 0.1, 1),
-            bold=True,
-            font_size='11sp'
-        )
-        btn_editar.bind(on_release=lambda x: self.callback_editar(self.producto))
+                        Label:
+                            text: "--------------------------------------------------"
+                            color: 0.5, 0.5, 0.5, 1
+                            size_hint_y: None
+                            height: dp(20)
 
-        self.add_widget(box_info)
-        self.add_widget(btn_editar)
+                        Label:
+                            text: "Modificar / Editar Producto Existente:"
+                            color: 0.3, 0.3, 0.3, 1
+                            font_size: '14sp'
+                            bold: True
+                            size_hint_y: None
+                            height: dp(25)
 
-    def actualizar_canvas(self, *args):
-        self.rect.pos = self.pos
-        self.rect.size = self.size
+                        Spinner:
+                            id: spinner_editar_producto
+                            text: "Seleccionar producto a editar"
+                            values: []
+                            font_size: '16sp'
+                            background_color: 1, 1, 1, 1
+                            color: 0, 0, 0, 1
+                            size_hint_y: None
+                            height: dp(50)
+                            on_text: root.cargar_datos_producto_editar(self.text)
 
-    def on_touch_down(self, touch):
-        if self.collide_point(*touch.pos):
-            for child in self.children:
-                if child.collide_point(*touch.pos) and isinstance(child, Button):
-                    return super().on_touch_down(touch)
-            self.callback_agregar(self.producto)
-            return True
-        return super().on_touch_down(touch)
+                        TextInput:
+                            id: prod_edit_nombre
+                            hint_text: "Nuevo nombre"
+                            foreground_color: 0, 0, 0, 1
+                            background_color: 1, 1, 1, 1
+                            cursor_color: 0, 0, 0, 1
+                            size_hint_y: None
+                            height: dp(50)
+                            font_size: '16sp'
 
-class PuntoDeVenta(BoxLayout):
+                        TextInput:
+                            id: prod_edit_precio
+                            hint_text: "Nuevo precio ($)"
+                            input_filter: 'float'
+                            foreground_color: 0, 0, 0, 1
+                            background_color: 1, 1, 1, 1
+                            cursor_color: 0, 0, 0, 1
+                            size_hint_y: None
+                            height: dp(50)
+                            font_size: '16sp'
+
+                        TextInput:
+                            id: prod_edit_stock
+                            hint_text: "Nuevo stock"
+                            input_filter: 'int'
+                            foreground_color: 0, 0, 0, 1
+                            background_color: 1, 1, 1, 1
+                            cursor_color: 0, 0, 0, 1
+                            size_hint_y: None
+                            height: dp(50)
+                            font_size: '16sp'
+
+                        Button:
+                            text: "Actualizar Producto"
+                            size_hint_y: None
+                            height: dp(50)
+                            background_color: 0.2, 0.5, 0.8, 1
+                            color: 1, 1, 1, 1
+                            font_size: '16sp'
+                            bold: True
+                            on_press: root.actualizar_producto(spinner_editar_producto.text, prod_edit_nombre.text, prod_edit_precio.text, prod_edit_stock.text)
+
+            # 4. INVENTARIOS
+            Screen:
+                name: 'inventarios'
+                BoxLayout:
+                    orientation: 'vertical'
+                    padding: dp(15)
+                    spacing: dp(10)
+                    canvas.before:
+                        Color:
+                            rgba: 0.92, 0.92, 0.92, 1
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
+                    
+                    BoxLayout:
+                        size_hint_y: None
+                        height: dp(40)
+                        spacing: dp(10)
+                        Label:
+                            text: "Control de Inventarios en Tiempo Real"
+                            color: 0, 0, 0, 1
+                            font_size: '20sp'
+                            bold: True
+                            halign: 'left'
+                        Button:
+                            text: "Actualizar"
+                            size_hint_x: None
+                            width: dp(100)
+                            background_color: 0.2, 0.5, 0.8, 1
+                            color: 1, 1, 1, 1
+                            bold: True
+                            on_press: root.cargar_inventario_tiempo_real()
+
+                    ScrollView:
+                        BoxLayout:
+                            id: inventario_layout
+                            orientation: 'vertical'
+                            size_hint_y: None
+                            height: self.minimum_height
+                            spacing: dp(5)
+
+            # 5. REPORTE DEL DÍA
+            Screen:
+                name: 'informes'
+                BoxLayout:
+                    orientation: 'vertical'
+                    padding: dp(20)
+                    spacing: dp(15)
+                    canvas.before:
+                        Color:
+                            rgba: 0.92, 0.92, 0.92, 1
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
+                    Label:
+                        text: "Generación de Reporte del Día"
+                        color: 0, 0, 0, 1
+                        font_size: '22sp'
+                        bold: True
+                        size_hint_y: None
+                        height: dp(40)
+                    Button:
+                        text: "Generar y Visualizar Reporte de Hoy"
+                        size_hint_y: None
+                        height: dp(60)
+                        background_color: 0.2, 0.5, 0.8, 1
+                        color: 1, 1, 1, 1
+                        font_size: '16sp'
+                        bold: True
+                        on_press: root.generar_reporte_completo_dia()
+                    Widget:
+
+            # 6. VENTAS DIARIAS (HISTORIAL)
+            Screen:
+                name: 'ventas_diarias'
+                BoxLayout:
+                    orientation: 'vertical'
+                    padding: dp(15)
+                    spacing: dp(10)
+                    canvas.before:
+                        Color:
+                            rgba: 0.92, 0.92, 0.92, 1
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
+                    BoxLayout:
+                        size_hint_y: None
+                        height: dp(40)
+                        Label:
+                            text: "Historial de Ventas Diarias"
+                            color: 0, 0, 0, 1
+                            font_size: '20sp'
+                            bold: True
+                        Button:
+                            text: "Actualizar"
+                            size_hint_x: None
+                            width: dp(100)
+                            background_color: 0.2, 0.5, 0.8, 1
+                            color: 1, 1, 1, 1
+                            bold: True
+                            on_press: root.cargar_ventas_diarias_historial()
+                    ScrollView:
+                        BoxLayout:
+                            id: ventas_diarias_layout
+                            orientation: 'vertical'
+                            size_hint_y: None
+                            height: self.minimum_height
+                            spacing: dp(5)
+
+            # 7. PRODUCTOS MÁS VENDIDOS
+            Screen:
+                name: 'mas_vendidos'
+                BoxLayout:
+                    orientation: 'vertical'
+                    padding: dp(15)
+                    spacing: dp(10)
+                    canvas.before:
+                        Color:
+                            rgba: 0.92, 0.92, 0.92, 1
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
+                    BoxLayout:
+                        size_hint_y: None
+                        height: dp(40)
+                        Label:
+                            text: "Ranking de Productos Más Vendidos"
+                            color: 0, 0, 0, 1
+                            font_size: '20sp'
+                            bold: True
+                        Button:
+                            text: "Actualizar"
+                            size_hint_x: None
+                            width: dp(100)
+                            background_color: 0.2, 0.5, 0.8, 1
+                            color: 1, 1, 1, 1
+                            bold: True
+                            on_press: root.cargar_productos_mas_vendidos_pantalla()
+                    ScrollView:
+                        BoxLayout:
+                            id: mas_vendidos_layout
+                            orientation: 'vertical'
+                            size_hint_y: None
+                            height: self.minimum_height
+                            spacing: dp(5)
+
+            # 8. REPORTES GUARDADOS
+            Screen:
+                name: 'reportes_guardados'
+                BoxLayout:
+                    orientation: 'vertical'
+                    padding: dp(15)
+                    spacing: dp(10)
+                    canvas.before:
+                        Color:
+                            rgba: 0.92, 0.92, 0.92, 1
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
+                    BoxLayout:
+                        size_hint_y: None
+                        height: dp(40)
+                        Label:
+                            text: "Historial de Reportes Guardados"
+                            color: 0, 0, 0, 1
+                            font_size: '20sp'
+                            bold: True
+                        Button:
+                            text: "Actualizar"
+                            size_hint_x: None
+                            width: dp(100)
+                            background_color: 0.2, 0.5, 0.8, 1
+                            color: 1, 1, 1, 1
+                            bold: True
+                            on_press: root.cargar_lista_reportes_guardados()
+                    ScrollView:
+                        BoxLayout:
+                            id: reportes_guardados_layout
+                            orientation: 'vertical'
+                            size_hint_y: None
+                            height: self.minimum_height
+                            spacing: dp(5)
+
+            # 9. GASTOS / COMPRAS
+            Screen:
+                name: 'gastos'
+                BoxLayout:
+                    orientation: 'vertical'
+                    padding: dp(20)
+                    spacing: dp(15)
+                    canvas.before:
+                        Color:
+                            rgba: 0.92, 0.92, 0.92, 1
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
+                    Label:
+                        text: "Registro de Compras de Mercancía / Gastos"
+                        color: 0, 0, 0, 1
+                        font_size: '20sp'
+                        bold: True
+                        size_hint_y: None
+                        height: dp(40)
+                    
+                    Spinner:
+                        id: spinner_producto_compra
+                        text: "Seleccionar producto a reabastecer (Opcional)"
+                        values: []
+                        font_size: '16sp'
+                        background_color: 1, 1, 1, 1
+                        color: 0, 0, 0, 1
+                        size_hint_y: None
+                        height: dp(50)
+
+                    TextInput:
+                        id: compra_cantidad_prod
+                        hint_text: "Cantidad a sumar al inventario (ej. 10)"
+                        input_filter: 'int'
+                        foreground_color: 0, 0, 0, 1
+                        background_color: 1, 1, 1, 1
+                        cursor_color: 0, 0, 0, 1
+                        size_hint_y: None
+                        height: dp(50)
+                        font_size: '16sp'
+
+                    TextInput:
+                        id: gasto_desc
+                        hint_text: "Descripción (ej. Compra de mercancía)"
+                        foreground_color: 0, 0, 0, 1
+                        background_color: 1, 1, 1, 1
+                        cursor_color: 0, 0, 0, 1
+                        size_hint_y: None
+                        height: dp(50)
+                        font_size: '16sp'
+
+                    TextInput:
+                        id: gasto_monto
+                        hint_text: "Monto total gastado ($)"
+                        input_filter: 'float'
+                        foreground_color: 0, 0, 0, 1
+                        background_color: 1, 1, 1, 1
+                        cursor_color: 0, 0, 0, 1
+                        size_hint_y: None
+                        height: dp(50)
+                        font_size: '16sp'
+
+                    Button:
+                        text: "Registrar Compra / Gasto y Actualizar Stock"
+                        size_hint_y: None
+                        height: dp(55)
+                        background_color: 0.8, 0.3, 0.2, 1
+                        color: 1, 1, 1, 1
+                        font_size: '16sp'
+                        bold: True
+                        on_press: root.guardar_compra_gasto(spinner_producto_compra.text, compra_cantidad_prod.text, gasto_desc.text, gasto_monto.text)
+                    Widget:
+
+            # 10. RECIBOS ANTERIORES
+            Screen:
+                name: 'recibos_anteriores'
+                BoxLayout:
+                    orientation: 'vertical'
+                    padding: dp(15)
+                    spacing: dp(10)
+                    canvas.before:
+                        Color:
+                            rgba: 0.92, 0.92, 0.92, 1
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
+                    BoxLayout:
+                        size_hint_y: None
+                        height: dp(40)
+                        Label:
+                            text: "Historial de Recibos Anteriores"
+                            color: 0, 0, 0, 1
+                            font_size: '20sp'
+                            bold: True
+                        Button:
+                            text: "Actualizar"
+                            size_hint_x: None
+                            width: dp(100)
+                            background_color: 0.2, 0.5, 0.8, 1
+                            color: 1, 1, 1, 1
+                            bold: True
+                            on_press: root.cargar_recibos_anteriores()
+                    ScrollView:
+                        BoxLayout:
+                            id: recibos_anteriores_layout
+                            orientation: 'vertical'
+                            size_hint_y: None
+                            height: self.minimum_height
+                            spacing: dp(5)
+'''
+
+class MenuDrawer(BoxLayout):
+    titulo_pantalla = StringProperty("Impresión de Recibos")
+    menu_abierto = False
+
     def __init__(self, **kwargs):
-        super().__init__(orientation='horizontal', padding=10, spacing=10, **kwargs)
+        super().__init__(**kwargs)
         self.carrito = []
-        self.total = 0.0
+        self.cargar_datos_db()
 
-        self.conn = sqlite3.connect("ruta.db")
-        self.cursor = self.conn.cursor()
-        self.folio_actual = self.obtener_siguiente_folio()
-
-        # ---------------- SECCIÓN IZQUIERDA: CATÁLOGO ----------------
-        seccion_catalogo = BoxLayout(orientation='vertical', size_hint=(0.5, 1), spacing=8)
+    def cargar_datos_db(self):
+        conexion = sqlite3.connect("sistemapos.db")
+        cursor = conexion.cursor()
         
-        header_cat = BoxLayout(orientation='horizontal', size_hint_y=None, height=45, spacing=10)
-        lbl_titulo = Label(text="Catálogo de Productos", font_size='15sp', bold=True, color=(0.1, 0.15, 0.2, 1), halign='left', valign='middle')
-        lbl_titulo.bind(size=lbl_titulo.setter('text_size'))
-        
-        btn_nuevo_prod = Button(
-            text="+ Producto", 
-            size_hint_x=None,
-            width=100,
-            background_normal='', 
-            background_color=(0.0, 0.5, 0.9, 1), 
-            bold=True,
-            font_size='11sp'
-        )
-        btn_nuevo_prod.bind(on_release=self.modal_agregar_producto)
-        
-        header_cat.add_widget(lbl_titulo)
-        header_cat.add_widget(btn_nuevo_prod)
-        seccion_catalogo.add_widget(header_cat)
-        
-        self.scroll_cat = ScrollView(size_hint=(1, 1))
-        self.grid_cat = GridLayout(cols=1, spacing=8, size_hint_y=None)
-        self.grid_cat.bind(minimum_height=self.grid_cat.setter('height'))
-        self.scroll_cat.add_widget(self.grid_cat)
-        seccion_catalogo.add_widget(self.scroll_cat)
-
-        # ---------------- SECCIÓN DERECHA: TICKET Y CLIENTES ----------------
-        seccion_ticket = BoxLayout(orientation='vertical', size_hint=(0.5, 1), spacing=8)
-        
-        panel_derecho = BoxLayout(orientation='vertical', padding=10, spacing=8)
-        with panel_derecho.canvas.before:
-            Color(1, 1, 1, 1)
-            self.rect_panel = RoundedRectangle(pos=panel_derecho.pos, size=panel_derecho.size, radius=[12])
-        panel_derecho.bind(pos=self._actualizar_panel, size=self._actualizar_panel)
-
-        self.lbl_folio = Label(
-            text=f"[b]Folio #{self.folio_actual:04d}[/b]",
-            markup=True,
-            font_size='13sp',
-            color=(0.1, 0.5, 0.8, 1),
-            size_hint_y=None,
-            height=25,
-            halign='left',
-            valign='middle'
-        )
-        self.lbl_folio.bind(size=self.lbl_folio.setter('text_size'))
-        panel_derecho.add_widget(self.lbl_folio)
-
-        header_cliente = BoxLayout(orientation='horizontal', size_hint_y=None, height=40, spacing=6)
-        lbl_cli = Label(text="Cliente:", bold=True, color=(0.2, 0.25, 0.3, 1), font_size='12sp', size_hint_x=None, width=55, halign='left', valign='middle')
-        lbl_cli.bind(size=lbl_cli.setter('text_size'))
-        
-        self.spinner_clientes = Spinner(
-            text="Seleccionar", 
-            size_hint_x=1,
-            height=38,
-            background_normal='',
-            background_color=(0.92, 0.94, 0.96, 1),
-            color=(0.1, 0.1, 0.1, 1),
-            font_size='12sp'
-        )
-
-        btn_nuevo_cliente = Button(
-            text="+ Cliente", 
-            size_hint_x=None,
-            width=85,
-            background_normal='', 
-            background_color=(0.0, 0.5, 0.9, 1),
-            bold=True,
-            font_size='11sp'
-        )
-        btn_nuevo_cliente.bind(on_release=self.modal_agregar_cliente)
-        
-        header_cliente.add_widget(lbl_cli)
-        header_cliente.add_widget(self.spinner_clientes)
-        header_cliente.add_widget(btn_nuevo_cliente)
-        panel_derecho.add_widget(header_cliente)
-
-        lbl_resumen = Label(text="Resumen del Carrito:", bold=True, color=(0.2, 0.25, 0.3, 1), size_hint_y=None, height=22, halign='left', font_size='12sp')
-        lbl_resumen.bind(size=lbl_resumen.setter('text_size'))
-        panel_derecho.add_widget(lbl_resumen)
-        
-        self.scroll_ticket = ScrollView(size_hint=(1, 1))
-        self.grid_ticket = GridLayout(cols=1, spacing=4, size_hint_y=None)
-        self.grid_ticket.bind(minimum_height=self.grid_ticket.setter('height'))
-        self.scroll_ticket.add_widget(self.grid_ticket)
-        panel_derecho.add_widget(self.scroll_ticket)
-
-        self.lbl_total = Label(
-            text="Total: $0.00", 
-            font_size='15sp', 
-            bold=True, 
-            color=(0.0, 0.6, 0.4, 1), 
-            size_hint_y=None,
-            height=30,
-            halign='right',
-            valign='middle'
-        )
-        self.lbl_total.bind(size=self.lbl_total.setter('text_size'))
-        panel_derecho.add_widget(self.lbl_total)
-
-        btn_imprimir = Button(
-            text="IMPRIMIR", 
-            size_hint_y=None,
-            height=45,
-            background_normal='', 
-            background_color=(0.0, 0.7, 0.45, 1), 
-            bold=True,
-            font_size='14sp'
-        )
-        btn_imprimir.bind(on_release=self.generar_ticket)
-        panel_derecho.add_widget(btn_imprimir)
-
-        seccion_ticket.add_widget(panel_derecho)
-
-        self.add_widget(seccion_catalogo)
-        self.add_widget(seccion_ticket)
-
-        self.cargar_productos()
-        self.cargar_clientes()
-        self.actualizar_vista()
-
-    def _actualizar_panel(self, instance, value):
-        self.rect_panel.pos = instance.pos
-        self.rect_panel.size = instance.size
-
-    def obtener_siguiente_folio(self):
-        conn = sqlite3.connect("ruta.db")
-        cursor = conn.cursor()
-        cursor.execute("SELECT MAX(folio) FROM ventas")
-        res = cursor.fetchone()[0]
-        conn.close()
-        return (res or 0) + 1
-
-    def cargar_productos(self):
-        self.grid_cat.clear_widgets()
-        self.cursor.execute("SELECT id, nombre, precio FROM productos")
-        productos = self.cursor.fetchall()
-        for prod in productos:
-            prod_dict = {"id": prod[0], "nombre": prod[1], "precio": prod[2]}
-            tarjeta = TarjetaProducto(prod_dict, self.agregar_producto, self.modal_editar_producto)
-            self.grid_cat.add_widget(tarjeta)
-
-    def cargar_clientes(self):
-        self.cursor.execute("SELECT nombre_tienda FROM clientes")
-        lista_clientes = [row[0] for row in self.cursor.fetchall()]
-        self.spinner_clientes.values = tuple(lista_clientes)
-        if lista_clientes:
-            self.spinner_clientes.text = lista_clientes[0]
-
-    def modal_agregar_producto(self, instance):
-        box = BoxLayout(orientation='vertical', padding=15, spacing=12)
-        input_nombre = TextInput(hint_text="Nombre del producto", multiline=False, size_hint_y=0.25)
-        input_precio = TextInput(hint_text="Precio (ej. 12.50)", multiline=False, input_filter='float', size_hint_y=0.25)
-        btn_guardar = Button(text="Guardar Producto", background_normal='', background_color=(0.0, 0.7, 0.45, 1), bold=True, size_hint_y=0.3)
-
-        box.add_widget(Label(text="Nuevo Producto", bold=True, font_size='18sp', color=(0.1,0.1,0.1,1)))
-        box.add_widget(input_nombre)
-        box.add_widget(input_precio)
-        box.add_widget(btn_guardar)
-
-        popup = Popup(title="Alta de Producto", content=box, size_hint=(0.85, 0.5))
-
-        def guardar(x):
-            if input_nombre.text and input_precio.text:
-                self.cursor.execute("INSERT INTO productos (nombre, precio) VALUES (?, ?)", 
-                                    (input_nombre.text, float(input_precio.text)))
-                self.conn.commit()
-                self.cargar_productos()
-                popup.dismiss()
-
-        btn_guardar.bind(on_release=guardar)
-        popup.open()
-
-    def modal_editar_producto(self, producto):
-        box = BoxLayout(orientation='vertical', padding=15, spacing=12)
-        input_nombre = TextInput(text=producto['nombre'], multiline=False, size_hint_y=0.25)
-        input_precio = TextInput(text=str(producto['precio']), multiline=False, input_filter='float', size_hint_y=0.25)
-        btn_guardar = Button(text="Actualizar", background_normal='', background_color=(0.9, 0.5, 0.1, 1), bold=True, size_hint_y=0.3)
-
-        box.add_widget(Label(text=f"Editar (ID: {producto['id']})", bold=True, font_size='18sp', color=(0.1,0.1,0.1,1)))
-        box.add_widget(input_nombre)
-        box.add_widget(input_precio)
-        box.add_widget(btn_guardar)
-
-        popup = Popup(title="Modificar Producto", content=box, size_hint=(0.85, 0.5))
-
-        def actualizar(x):
-            if input_nombre.text and input_precio.text:
-                self.cursor.execute("UPDATE productos SET nombre = ?, precio = ? WHERE id = ?", 
-                                    (input_nombre.text, float(input_precio.text), producto['id']))
-                self.conn.commit()
-                self.cargar_productos()
-                popup.dismiss()
-
-        btn_guardar.bind(on_release=actualizar)
-        popup.open()
-
-    def modal_agregar_cliente(self, instance):
-        box = BoxLayout(orientation='vertical', padding=15, spacing=12)
-        input_nombre = TextInput(hint_text="Nombre de la tienda/cliente", multiline=False, size_hint_y=0.3)
-        btn_guardar = Button(text="Guardar Cliente", background_normal='', background_color=(0.0, 0.7, 0.45, 1), bold=True, size_hint_y=0.3)
-
-        box.add_widget(Label(text="Nuevo Cliente", bold=True, font_size='18sp', color=(0.1,0.1,0.1,1)))
-        box.add_widget(input_nombre)
-        box.add_widget(btn_guardar)
-
-        popup = Popup(title="Alta de Cliente", content=box, size_hint=(0.85, 0.45))
-
-        def guardar(x):
-            if input_nombre.text:
-                self.cursor.execute("INSERT INTO clientes (nombre_tienda) VALUES (?)", (input_nombre.text,))
-                self.conn.commit()
-                self.cargar_clientes()
-                self.spinner_clientes.text = input_nombre.text
-                popup.dismiss()
-
-        btn_guardar.bind(on_release=guardar)
-        popup.open()
-
-    def agregar_producto(self, producto):
-        self.carrito.append(producto)
-        self.actualizar_vista()
-
-    def eliminar_producto_carrito(self, indice, item):
-        if 0 <= indice < len(self.carrito):
-            self.carrito.pop(indice)
-            self.actualizar_vista()
-
-    def actualizar_vista(self):
-        self.grid_ticket.clear_widgets()
-        self.total = 0.0
-
-        if not self.carrito:
-            lbl_vacio = Label(
-                text="Carrito vacío", 
-                color=(0.3, 0.35, 0.4, 1),
-                font_size='12sp',
-                size_hint_y=None,
-                height=35
-            )
-            self.grid_ticket.add_widget(lbl_vacio)
+        cursor.execute("SELECT nombre FROM clientes")
+        clientes = [row[0] for row in cursor.fetchall()]
+        if clientes:
+            self.ids.spinner_cliente.values = clientes
+            self.ids.spinner_cliente.text = clientes[0]
+            self.ids.spinner_editar_cliente.values = clientes
+            self.ids.spinner_editar_cliente.text = "Seleccionar cliente a editar"
         else:
-            for idx, item in enumerate(self.carrito):
-                self.total += item['precio']
-                renglon = RenglonCarrito(item, idx, self.eliminar_producto_carrito)
-                self.grid_ticket.add_widget(renglon)
+            self.ids.spinner_cliente.values = ["Sin clientes guardados"]
+            self.ids.spinner_cliente.text = "Sin clientes guardados"
+            self.ids.spinner_editar_cliente.values = ["Sin clientes guardados"]
+            self.ids.spinner_editar_cliente.text = "Sin clientes guardados"
 
-        self.lbl_total.text = f"Total: ${self.total:.2f}"
+        cursor.execute("SELECT nombre FROM productos")
+        productos = [row[0] for row in cursor.fetchall()]
+        if productos:
+            self.ids.spinner_producto.values = productos
+            self.ids.spinner_producto.text = productos[0]
+            self.ids.spinner_producto_compra.values = ["Seleccionar producto a reabastecer"] + productos
+            self.ids.spinner_producto_compra.text = "Seleccionar producto a reabastecer"
+            self.ids.spinner_editar_producto.values = productos
+            self.ids.spinner_editar_producto.text = "Seleccionar producto a editar"
+        else:
+            self.ids.spinner_producto.values = ["Sin productos en inventario"]
+            self.ids.spinner_producto.text = "Sin productos en inventario"
+            self.ids.spinner_producto_compra.values = ["Sin productos en inventario"]
+            self.ids.spinner_producto_compra.text = "Sin productos en inventario"
+            self.ids.spinner_editar_producto.values = ["Sin productos en inventario"]
+            self.ids.spinner_editar_producto.text = "Sin productos en inventario"
+            
+        conexion.close()
+        self.cargar_inventario_tiempo_real()
+        self.cargar_ventas_diarias_historial()
+        self.cargar_productos_mas_vendidos_pantalla()
+        self.cargar_lista_reportes_guardados()
+        self.cargar_recibos_anteriores()
 
-    def mostrar_alerta(self, titulo, mensaje):
-        pop_box = BoxLayout(orientation='vertical', padding=15, spacing=10)
-        pop_box.add_widget(Label(text=mensaje, font_size='14sp', halign='center'))
-        btn_cerrar = Button(text="Aceptar", size_hint_y=None, height=40, background_color=(0.0, 0.5, 0.9, 1))
-        
-        popup = Popup(title=titulo, content=pop_box, size_hint=(0.8, 0.4))
-        btn_cerrar.bind(on_release=popup.dismiss)
-        pop_box.add_widget(btn_cerrar)
-        popup.open()
-
-    def enviar_a_impresora_bluetooth(self, texto_ticket):
-        if platform != 'android':
-            print("--- MODO PC: SIMULANDO IMPRESIÓN ---")
-            print(texto_ticket)
+    def cargar_datos_cliente_editar(self, nombre_cliente):
+        if not nombre_cliente or "Seleccionar" in nombre_cliente or "Sin clientes" in nombre_cliente:
             return
+        conexion = sqlite3.connect("sistemapos.db")
+        cursor = conexion.cursor()
+        cursor.execute("SELECT nombre, telefono FROM clientes WHERE nombre = ?", (nombre_cliente,))
+        res = cursor.fetchone()
+        conexion.close()
+        if res:
+            self.ids.cliente_edit_nombre.text = res[0]
+            self.ids.cliente_edit_telefono.text = str(res[1] if res[1] else "")
 
+    def actualizar_cliente(self, cliente_antiguo, nuevo_nombre, nuevo_telefono):
+        if not cliente_antiguo or "Seleccionar" in cliente_antiguo or not nuevo_nombre.strip():
+            return
+        conexion = sqlite3.connect("sistemapos.db")
+        cursor = conexion.cursor()
+        cursor.execute("UPDATE clientes SET nombre = ?, telefono = ? WHERE nombre = ?", (nuevo_nombre, nuevo_telefono, cliente_antiguo))
+        conexion.commit()
+        conexion.close()
+        self.ids.cliente_edit_nombre.text = ""
+        self.ids.cliente_edit_telefono.text = ""
+        self.cargar_datos_db()
+
+    def cargar_datos_producto_editar(self, nombre_producto):
+        if not nombre_producto or "Seleccionar" in nombre_producto or "Sin productos" in nombre_producto:
+            return
+        conexion = sqlite3.connect("sistemapos.db")
+        cursor = conexion.cursor()
+        cursor.execute("SELECT nombre, precio, stock FROM productos WHERE nombre = ?", (nombre_producto,))
+        res = cursor.fetchone()
+        conexion.close()
+        if res:
+            self.ids.prod_edit_nombre.text = res[0]
+            self.ids.prod_edit_precio.text = str(res[1])
+            self.ids.prod_edit_stock.text = str(res[2])
+
+    def actualizar_producto(self, producto_antiguo, nuevo_nombre, nuevo_precio, nuevo_stock):
+        if not producto_antiguo or "Seleccionar" in producto_antiguo or not nuevo_nombre.strip() or not nuevo_precio.strip():
+            return
         try:
-            from jnius import autoclass
-            BluetoothAdapter = autoclass('android.bluetooth.BluetoothAdapter')
-            UUID = autoclass('java.util.UUID')
-            
-            adapter = BluetoothAdapter.getDefaultAdapter()
-            if not adapter or not adapter.isEnabled():
-                self.mostrar_alerta("Bluetooth Apagado", "Por favor enciende el Bluetooth de tu celular.")
-                return
-
-            try:
-                bonded_devices = adapter.getBondedDevices().toArray()
-            except Exception:
-                self.mostrar_alerta("Permiso Denegado", "Android bloqueó el Bluetooth.\nVe a Ajustes de tu celular > Aplicaciones > Tu App > Permisos y activa 'Dispositivos cercanos' o 'Bluetooth'.")
-                return
-
-            if len(bonded_devices) == 0:
-                self.mostrar_alerta("Sin dispositivos", "Vincula tu impresora MP210 en los ajustes Bluetooth de Android primero.")
-                return
-
-            impresora = None
-            for device in bonded_devices:
-                nombre_b = device.getName().lower()
-                if "mp210" in nombre_b or any(k in nombre_b for k in ["printer", "pos", "thermal", "rpt", "mtp"]):
-                    impresora = device
-                    break
-            
-            if not impresora:
-                impresora = bonded_devices[0]
-
-            if impresora:
-                nombre_impresora = impresora.getName()
-                uuid = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
-                
-                socket = impresora.createInsecureRfcommSocketToServiceRecord(uuid)
-                adapter.cancelDiscovery()
-                
-                socket.connect()
-                
-                output_stream = socket.getOutputStream()
-                output_stream.write(texto_ticket.encode('cp850', errors='replace'))
-                output_stream.write(b"\n\n\n")
-                output_stream.flush()
-                socket.close()
-                
-                self.mostrar_alerta("Impresión Exitosa", f"Ticket enviado a: {nombre_impresora}")
-            else:
-                self.mostrar_alerta("Error", "No se encontró la impresora MP210 vinculada.")
-        except Exception as e:
-            self.mostrar_alerta("Error de Conexión", "No se pudo establecer comunicación con la impresora. Asegúrate de que esté encendida y vinculada.")
-
-    def generar_ticket(self, instance):
-        if not self.carrito:
-            self.mostrar_alerta("Aviso", "El carrito está vacío.")
+            p = float(nuevo_precio)
+            s = int(nuevo_stock) if nuevo_stock.strip() else 0
+        except ValueError:
             return
+        conexion = sqlite3.connect("sistemapos.db")
+        cursor = conexion.cursor()
+        cursor.execute("UPDATE productos SET nombre = ?, precio = ?, stock = ? WHERE nombre = ?", (nuevo_nombre, p, s, producto_antiguo))
+        conexion.commit()
+        conexion.close()
+        self.ids.prod_edit_nombre.text = ""
+        self.ids.prod_edit_precio.text = ""
+        self.ids.prod_edit_stock.text = ""
+        self.cargar_datos_db()
 
-        cliente = self.spinner_clientes.text
-        tipo_pago = "Contado"
-        fecha = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+    def cargar_inventario_tiempo_real(self):
+        layout = self.ids.inventario_layout
+        layout.clear_widgets()
 
-        self.cursor.execute(
-            "INSERT INTO ventas (cliente, metodo_pago, total, fecha) VALUES (?, ?, ?, ?)",
-            (cliente, tipo_pago, self.total, fecha)
-        )
-        self.conn.commit()
+        conexion = sqlite3.connect("sistemapos.db")
+        cursor = conexion.cursor()
+        cursor.execute("SELECT nombre, precio, stock FROM productos")
+        productos = cursor.fetchall()
+        conexion.close()
 
-        ticket_texto = f"====== TICKET DE VENTA ======\n"
-        ticket_texto += f"Folio #: {self.folio_actual:04d}\n"
-        ticket_texto += f"Fecha: {fecha}\n"
-        ticket_texto += f"Cliente: {cliente}\n"
-        ticket_texto += f"Pago: {tipo_pago}\n"
-        ticket_texto += f"------------------------------------\n"
+        if not productos:
+            lbl = Label(text="No hay productos registrados.", color=(0.3, 0.3, 0.3, 1), font_size='16sp', size_hint_y=None, height=dp(40))
+            layout.add_widget(lbl)
+        else:
+            header_layout = BoxLayout(size_hint_y=None, height=dp(40))
+            header_layout.add_widget(Label(text="[b]Producto[/b]", markup=True, color=(0.1, 0.1, 0.1, 1), font_size='15sp'))
+            header_layout.add_widget(Label(text="[b]Precio[/b]", markup=True, color=(0.1, 0.1, 0.1, 1), font_size='15sp'))
+            header_layout.add_widget(Label(text="[b]Stock[/b]", markup=True, color=(0.1, 0.1, 0.1, 1), font_size='15sp'))
+            layout.add_widget(header_layout)
+
+            for prod, precio, stock in productos:
+                row = BoxLayout(size_hint_y=None, height=dp(45))
+                row.add_widget(Label(text=str(prod), color=(0, 0, 0, 1), font_size='14sp'))
+                row.add_widget(Label(text=f"${precio:.2f}", color=(0, 0, 0, 1), font_size='14sp'))
+                row.add_widget(Label(text=str(stock), color=(0, 0, 0, 1), font_size='14sp', bold=True))
+                layout.add_widget(row)
+
+    def cargar_ventas_diarias_historial(self):
+        layout = self.ids.ventas_diarias_layout
+        layout.clear_widgets()
+
+        conexion = sqlite3.connect("sistemapos.db")
+        cursor = conexion.cursor()
+        cursor.execute("""
+            SELECT date(fecha) as dia, COUNT(id) as total_tickets, SUM(total) as suma_total 
+            FROM recibos 
+            GROUP BY date(fecha) 
+            ORDER BY dia ASC
+        """)
+        resultados = cursor.fetchall()
+        conexion.close()
+
+        if not resultados:
+            lbl = Label(text="Aún no hay registros de ventas diarias.", color=(0.3, 0.3, 0.3, 1), font_size='16sp', size_hint_y=None, height=dp(40))
+            layout.add_widget(lbl)
+        else:
+            header_layout = BoxLayout(size_hint_y=None, height=dp(40))
+            header_layout.add_widget(Label(text="[b]Día / Fecha[/b]", markup=True, color=(0.1, 0.1, 0.1, 1), font_size='15sp'))
+            header_layout.add_widget(Label(text="[b]Tickets[/b]", markup=True, color=(0.1, 0.1, 0.1, 1), font_size='15sp'))
+            header_layout.add_widget(Label(text="[b]Total Vendido[/b]", markup=True, color=(0.1, 0.1, 0.1, 1), font_size='15sp'))
+            layout.add_widget(header_layout)
+
+            for i, (dia, num_tickets, suma_total) in enumerate(resultados, 1):
+                row = BoxLayout(size_hint_y=None, height=dp(45))
+                row.add_widget(Label(text=f"Día {i} ({dia})", color=(0, 0, 0, 1), font_size='14sp', bold=True))
+                row.add_widget(Label(text=str(num_tickets), color=(0, 0, 0, 1), font_size='14sp'))
+                row.add_widget(Label(text=f"${suma_total:.2f}", color=(0, 0, 0, 1), font_size='14sp', bold=True))
+                layout.add_widget(row)
+
+    def guardar_cliente(self, nombre, telefono):
+        if not nombre.strip():
+            return
+        conexion = sqlite3.connect("sistemapos.db")
+        cursor = conexion.cursor()
+        cursor.execute("INSERT INTO clientes (nombre, telefono) VALUES (?, ?)", (nombre, telefono))
+        conexion.commit()
+        conexion.close()
+        self.ids.cliente_nombre.text = ""
+        self.ids.cliente_telefono.text = ""
+        self.cargar_datos_db()
+        self.cambiar_pantalla('recibos')
+
+    def guardar_producto(self, nombre, precio, stock):
+        if not nombre.strip() or not precio.strip():
+            return
+        try:
+            p = float(precio)
+            s = int(stock) if stock.strip() else 0
+        except ValueError:
+            return
+        conexion = sqlite3.connect("sistemapos.db")
+        cursor = conexion.cursor()
+        cursor.execute("INSERT INTO productos (nombre, precio, stock) VALUES (?, ?, ?)", (nombre, p, s))
+        conexion.commit()
+        conexion.close()
+        self.ids.prod_nombre.text = ""
+        self.ids.prod_precio.text = ""
+        self.ids.prod_stock.text = ""
+        self.cargar_datos_db()
+        self.cambiar_pantalla('recibos')
+
+    def guardar_compra_gasto(self, producto_nombre, cantidad_str, descripcion, monto_str):
+        if not descripcion.strip() or not monto_str.strip():
+            return
+        try:
+            monto = float(monto_str)
+        except ValueError:
+            return
+            
+        conexion = sqlite3.connect("sistemapos.db")
+        cursor = conexion.cursor()
+        cursor.execute("INSERT INTO gastos (descripcion, monto) VALUES (?, ?)", (descripcion, monto))
+        
+        if producto_nombre and "Seleccionar" not in producto_nombre and "Sin productos" not in producto_nombre:
+            try:
+                cantidad_a_sumar = int(cantidad_str) if cantidad_str.strip() else 0
+                if cantidad_a_sumar > 0:
+                    cursor.execute("UPDATE productos SET stock = stock + ? WHERE nombre = ?", (cantidad_a_sumar, producto_nombre))
+            except ValueError:
+                pass
+                
+        conexion.commit()
+        conexion.close()
+        
+        self.ids.gasto_desc.text = ""
+        self.ids.gasto_monto.text = ""
+        self.ids.compra_cantidad_prod.text = ""
+        self.ids.spinner_producto_compra.text = "Seleccionar producto a reabastecer"
+        self.cargar_datos_db()
+
+    def agregar_al_carrito(self, producto_nombre, cantidad_str):
+        if not producto_nombre or "Sin productos" in producto_nombre:
+            return
+        try:
+            cantidad = int(cantidad_str) if cantidad_str else 1
+        except ValueError:
+            cantidad = 1
+
+        conexion = sqlite3.connect("sistemapos.db")
+        cursor = conexion.cursor()
+        cursor.execute("SELECT precio FROM productos WHERE nombre = ?", (producto_nombre,))
+        res = cursor.fetchone()
+        conexion.close()
+
+        if res:
+            precio = res[0]
+            subtotal = precio * cantidad
+            encontrado = False
+            for item in self.carrito:
+                if item['nombre'] == producto_nombre:
+                    item['cantidad'] += cantidad
+                    item['subtotal'] = item['cantidad'] * item['precio']
+                    encontrado = True
+                    break
+            if not encontrado:
+                self.carrito.append({
+                    'nombre': producto_nombre,
+                    'precio': precio,
+                    'cantidad': cantidad,
+                    'subtotal': subtotal
+                })
+            self.actualizar_vista_carrito()
+
+    def actualizar_vista_carrito(self):
+        layout = self.ids.carrito_layout
+        layout.clear_widgets()
+        
+        total_general = 0.0
+        if not self.carrito:
+            lbl = Label(text="Carrito vacío", color=(0.3, 0.3, 0.3, 1), font_size='16sp', size_hint_y=None, height=dp(40))
+            layout.add_widget(lbl)
+        else:
+            for item in self.carrito:
+                total_general += item['subtotal']
+                texto_item = f"{item['cantidad']}x {item['nombre']} - ${item['subtotal']:.2f}"
+                lbl = Label(text=texto_item, color=(0, 0, 0, 1), font_size='16sp', size_hint_y=None, height=dp(40), halign='left', valign='middle')
+                lbl.bind(size=lbl.setter('text_size'))
+                layout.add_widget(lbl)
+
+        self.ids.lbl_subtotal.text = f"Subtotal: $ {total_general:.2f}"
+        self.ids.lbl_total.text = f"Total: $ {total_general:.2f}"
+
+    def guardar_venta(self):
+        if not self.carrito:
+            return
+        cliente = self.ids.spinner_cliente.text
+        total_general = sum(item['subtotal'] for item in self.carrito)
+
+        conexion = sqlite3.connect("sistemapos.db")
+        cursor = conexion.cursor()
+        
+        cursor.execute("INSERT INTO recibos (cliente, total) VALUES (?, ?)", (cliente, total_general))
+        recibo_id = cursor.lastrowid
+
         for item in self.carrito:
-            ticket_texto += f"{item['nombre'][:18]:<18} ${item['precio']:>6.2f}\n"
-        ticket_texto += f"------------------------------------\n"
-        ticket_texto += f"TOTAL:              ${self.total:>6.2f}\n"
-        ticket_texto += f"============================\n"
-
-        self.enviar_a_impresora_bluetooth(ticket_texto)
+            cursor.execute("""
+                INSERT INTO detalle_recibos (recibo_id, producto, cantidad, precio, subtotal)
+                VALUES (?, ?, ?, ?, ?)
+            """, (recibo_id, item['nombre'], item['cantidad'], item['precio'], item['subtotal']))
+            
+            cursor.execute("""
+                UPDATE productos SET stock = stock - ? WHERE nombre = ?
+            """, (item['cantidad'], item['nombre']))
+        
+        conexion.commit()
+        conexion.close()
 
         self.carrito = []
-        self.actualizar_vista()
-        self.folio_actual = self.obtener_siguiente_folio()
-        self.lbl_folio.text = f"[b]Folio #{self.folio_actual:04d}[/b]"
+        self.actualizar_vista_carrito()
+        self.cargar_datos_db()
+
+    def cargar_recibos_anteriores(self):
+        layout = self.ids.recibos_anteriores_layout
+        layout.clear_widgets()
+
+        conexion = sqlite3.connect("sistemapos.db")
+        cursor = conexion.cursor()
+        cursor.execute("SELECT id, cliente, total, fecha FROM recibos ORDER BY id DESC")
+        recibos = cursor.fetchall()
+        conexion.close()
+
+        if not recibos:
+            lbl = Label(text="No hay recibos registrados aún.", color=(0.3, 0.3, 0.3, 1), font_size='16sp', size_hint_y=None, height=dp(40))
+            layout.add_widget(lbl)
+        else:
+            for rec_id, cliente, total, fecha in recibos:
+                btn = Button(
+                    text=f"Ticket #{rec_id} | Cliente: {cliente} | Total: ${total:.2f} | {fecha}",
+                    size_hint_y=None,
+                    height=dp(50),
+                    background_color=(0.2, 0.5, 0.8, 1),
+                    color=(1, 1, 1, 1),
+                    bold=True,
+                    font_size='14sp'
+                )
+                btn.bind(on_press=lambda instance, rid=rec_id: self.ver_detalle_recibo_anterior(rid))
+                layout.add_widget(btn)
+
+    def ver_detalle_recibo_anterior(self, recibo_id):
+        conexion = sqlite3.connect("sistemapos.db")
+        cursor = conexion.cursor()
+        cursor.execute("SELECT cliente, total, fecha FROM recibos WHERE id = ?", (recibo_id,))
+        recibo = cursor.fetchone()
+        
+        cursor.execute("SELECT producto, cantidad, precio, subtotal FROM detalle_recibos WHERE recibo_id = ?", (recibo_id,))
+        detalles = cursor.fetchall()
+        conexion.close()
+
+        if recibo:
+            cliente, total, fecha = recibo
+            
+            texto_ticket = f"ABARROTES CERF S.A.\n"
+            texto_ticket += f"Ticket #{recibo_id}\n"
+            texto_ticket += f"Fecha: {fecha}\n"
+            texto_ticket += f"Cliente: {cliente}\n"
+            texto_ticket += "--------------------------------\n"
+            texto_ticket += "Cant   Articulo       Subtotal\n"
+            for prod, cant, precio, subtotal in detalles:
+                texto_ticket += f"{cant:<6} {prod:<10} ${subtotal:.2f}\n"
+            texto_ticket += "--------------------------------\n"
+            texto_ticket += f"TOTAL: ${total:.2f}\n"
+            texto_ticket += "Gracias por su preferencia\n\n\n"
+
+            # POPUP CON FONDO BLANCO (Ajuste aplicado)[cite: 4]
+            content = BoxLayout(orientation='vertical', padding=10, spacing=10)
+            with content.canvas.before:
+                Color(1, 1, 1, 1)  # Blanco RGBA
+                self.bg_rect_recibo = Rectangle(pos=content.pos, size=content.size)
+            content.bind(pos=lambda s, p: setattr(self.bg_rect_recibo, 'pos', p),
+                         size=lambda s, sz: setattr(self.bg_rect_recibo, 'size', sz))
+
+            scroll = ScrollView()
+            
+            lbl = Label(
+                text=texto_ticket, 
+                color=(0,0,0,1), 
+                size_hint_y=None, 
+                font_size='14sp', 
+                halign='left', 
+                valign='top'
+            )
+            lbl.bind(width=lambda s, w: setattr(s, 'text_size', (int(w), None)))
+            lbl.bind(texture_size=lambda s, t: setattr(s, 'height', t[1]))
+            
+            scroll.add_widget(lbl)
+            content.add_widget(scroll)
+
+            btn_layout = BoxLayout(size_hint_y=None, height=dp(50), spacing=10)
+            btn_imprimir = Button(text="Reimprimir Ticket", background_color=(0.1, 0.6, 0.2, 1), color=(1,1,1,1), bold=True)
+            btn_cerrar = Button(text="Cerrar", background_color=(0.7, 0.2, 0.2, 1), color=(1,1,1,1), bold=True)
+            
+            popup = Popup(title=f"Detalle Ticket #{recibo_id}", content=content, size_hint=(0.9, 0.9))
+            
+            scroll.bind(width=lambda s, w: setattr(lbl, 'width', int(w)))
+
+            btn_imprimir.bind(on_press=lambda instance: self.imprimir_texto_directo(texto_ticket))
+            btn_cerrar.bind(on_press=popup.dismiss)
+            
+            btn_layout.add_widget(btn_imprimir)
+            btn_layout.add_widget(btn_cerrar)
+            content.add_widget(btn_layout)
+            popup.open()
+
+    def generar_reporte_completo_dia(self):
+        fecha_hoy = datetime.now().strftime('%Y-%m-%d')
+        conexion = sqlite3.connect("sistemapos.db")
+        cursor = conexion.cursor()
+        
+        cursor.execute("SELECT id, cliente, total FROM recibos WHERE date(fecha) = ?", (fecha_hoy,))
+        ventas = cursor.fetchall()
+        total_vendido = sum(v[2] for v in ventas)
+        
+        cursor.execute("SELECT descripcion, monto FROM gastos WHERE date(fecha) = ?", (fecha_hoy,))
+        gastos_compras = cursor.fetchall()
+        total_gastos = sum(g[1] for g in gastos_compras)
+        
+        conexion.close()
+        
+        texto_reporte = f"REPORTE DEL DIA: {fecha_hoy}\n"
+        texto_reporte += "================================\n"
+        texto_reporte += f"Total Vendido: ${total_vendido:.2f}\n"
+        texto_reporte += f"Total Compras/Gastos: ${total_gastos:.2f}\n"
+        texto_reporte += f"Balance Neto: ${total_vendido - total_gastos:.2f}\n\n"
+        
+        texto_reporte += "--- DETALLE DE VENTAS ---\n"
+        if ventas:
+            for v in ventas:
+                texto_reporte += f"Ticket #{v[0]} | Cliente: {v[1]} | ${v[2]:.2f}\n"
+        else:
+            texto_reporte += "No hay ventas registradas hoy.\n"
+            
+        texto_reporte += "\n--- DETALLE DE GASTOS/COMPRAS ---\n"
+        if gastos_compras:
+            for g in gastos_compras:
+                texto_reporte += f"- {g[0]}: ${g[1]:.2f}\n"
+        else:
+            texto_reporte += "No hay gastos registrados hoy.\n"
+
+        # POPUP CON FONDO BLANCO (Ajuste aplicado)[cite: 4]
+        content = BoxLayout(orientation='vertical', padding=10, spacing=10)
+        with content.canvas.before:
+            Color(1, 1, 1, 1)  # Blanco RGBA
+            self.bg_rect_reporte = Rectangle(pos=content.pos, size=content.size)
+        content.bind(pos=lambda s, p: setattr(self.bg_rect_reporte, 'pos', p),
+                     size=lambda s, sz: setattr(self.bg_rect_reporte, 'size', sz))
+
+        scroll = ScrollView()
+        
+        lbl = Label(text=texto_reporte, color=(0,0,0,1), size_hint_y=None, font_size='14sp', halign='left', valign='top')
+        lbl.bind(width=lambda s, w: setattr(s, 'text_size', (int(w), None)))
+        lbl.bind(texture_size=lambda s, t: setattr(s, 'height', t[1]))
+        
+        scroll.add_widget(lbl)
+        content.add_widget(scroll)
+
+        btn_layout = BoxLayout(size_hint_y=None, height=dp(50), spacing=10)
+        btn_imprimir = Button(text="Imprimir", background_color=(0.1, 0.6, 0.2, 1), color=(1,1,1,1), bold=True)
+        btn_guardar = Button(text="Guardar Reporte", background_color=(0.2, 0.4, 0.7, 1), color=(1,1,1,1), bold=True)
+        btn_cerrar = Button(text="Cerrar", background_color=(0.7, 0.2, 0.2, 1), color=(1,1,1,1), bold=True)
+        
+        popup = Popup(title=f"Reporte Diario - {fecha_hoy}", content=content, size_hint=(0.9, 0.9))
+        
+        def imprimir_desde_popup(instance):
+            self.imprimir_texto_directo(texto_reporte)
+
+        def guardar_desde_popup(instance):
+            self.guardar_reporte_en_db(fecha_hoy, texto_reporte)
+            popup.dismiss()
+
+        btn_imprimir.bind(on_press=imprimir_desde_popup)
+        btn_guardar.bind(on_press=guardar_desde_popup)
+        btn_cerrar.bind(on_press=popup.dismiss)
+        
+        btn_layout.add_widget(btn_imprimir)
+        btn_layout.add_widget(btn_guardar)
+        btn_layout.add_widget(btn_cerrar)
+        content.add_widget(btn_layout)
+        
+        popup.open()
+
+    def guardar_reporte_en_db(self, fecha, contenido):
+        conexion = sqlite3.connect("sistemapos.db")
+        cursor = conexion.cursor()
+        cursor.execute("INSERT INTO reportes_guardados (fecha_reporte, contenido) VALUES (?, ?)", (fecha, contenido))
+        conexion.commit()
+        conexion.close()
+        self.cargar_lista_reportes_guardados()
+
+    def cargar_lista_reportes_guardados(self):
+        layout = self.ids.reportes_guardados_layout
+        layout.clear_widgets()
+
+        conexion = sqlite3.connect("sistemapos.db")
+        cursor = conexion.cursor()
+        cursor.execute("SELECT id, fecha_reporte, fecha_creacion FROM reportes_guardados ORDER BY id DESC")
+        reportes = cursor.fetchall()
+        conexion.close()
+
+        if not reportes:
+            lbl = Label(text="No hay reportes guardados.", color=(0.3, 0.3, 0.3, 1), font_size='16sp', size_hint_y=None, height=dp(40))
+            layout.add_widget(lbl)
+        else:
+            for rep_id, fecha_rep, fecha_creacion in reportes:
+                btn = Button(
+                    text=f"Reporte del {fecha_rep} (Guardado: {fecha_creacion})",
+                    size_hint_y=None,
+                    height=dp(50),
+                    background_color=(0.2, 0.5, 0.8, 1),
+                    color=(1, 1, 1, 1),
+                    bold=True
+                )
+                btn.bind(on_press=lambda instance, rid=rep_id: self.ver_detalle_reporte_guardado(rid))
+                layout.add_widget(btn)
+
+    def ver_detalle_reporte_guardado(self, reporte_id):
+        conexion = sqlite3.connect("sistemapos.db")
+        cursor = conexion.cursor()
+        cursor.execute("SELECT fecha_reporte, contenido FROM reportes_guardados WHERE id = ?", (reporte_id,))
+        res = cursor.fetchone()
+        conexion.close()
+
+        if res:
+            fecha_rep, contenido = res
+            content = BoxLayout(orientation='vertical', padding=10, spacing=10)
+            
+            # Fondo blanco también para reportes guardados[cite: 4]
+            with content.canvas.before:
+                Color(1, 1, 1, 1)
+                self.bg_rect_guardado = Rectangle(pos=content.pos, size=content.size)
+            content.bind(pos=lambda s, p: setattr(self.bg_rect_guardado, 'pos', p),
+                         size=lambda s, sz: setattr(self.bg_rect_guardado, 'size', sz))
+
+            scroll = ScrollView()
+            lbl = Label(text=contenido, color=(0,0,0,1), size_hint_y=None, font_size='14sp', halign='left', valign='top')
+            lbl.bind(width=lambda s, w: setattr(s, 'text_size', (int(w), None)))
+            lbl.bind(texture_size=lambda s, t: setattr(s, 'height', t[1]))
+            scroll.add_widget(lbl)
+            content.add_widget(scroll)
+
+            btn_layout = BoxLayout(size_hint_y=None, height=dp(50), spacing=10)
+            btn_imprimir = Button(text="Imprimir", background_color=(0.1, 0.6, 0.2, 1), color=(1,1,1,1), bold=True)
+            btn_cerrar = Button(text="Cerrar", background_color=(0.7, 0.2, 0.2, 1), color=(1,1,1,1), bold=True)
+            
+            popup = Popup(title=f"Reporte Guardado - {fecha_rep}", content=content, size_hint=(0.9, 0.9))
+            
+            btn_imprimir.bind(on_press=lambda instance: self.imprimir_texto_directo(contenido))
+            btn_cerrar.bind(on_press=popup.dismiss)
+            
+            btn_layout.add_widget(btn_imprimir)
+            btn_layout.add_widget(btn_cerrar)
+            content.add_widget(btn_layout)
+            popup.open()
+
+    def cargar_productos_mas_vendidos_pantalla(self):
+        layout = self.ids.mas_vendidos_layout
+        layout.clear_widgets()
+
+        conexion = sqlite3.connect("sistemapos.db")
+        cursor = conexion.cursor()
+        cursor.execute("""
+            SELECT producto, SUM(cantidad) as total_cant, SUM(subtotal) as total_dinero 
+            FROM detalle_recibos 
+            GROUP BY producto 
+            ORDER BY total_cant DESC
+        """)
+        resultados = cursor.fetchall()
+        conexion.close()
+
+        if not resultados:
+            lbl = Label(text="Aún no hay registros de ventas.", color=(0.3, 0.3, 0.3, 1), font_size='16sp', size_hint_y=None, height=dp(40))
+            layout.add_widget(lbl)
+        else:
+            header_layout = BoxLayout(size_hint_y=None, height=dp(40))
+            header_layout.add_widget(Label(text="[b]Producto[/b]", markup=True, color=(0.1, 0.1, 0.1, 1), font_size='15sp'))
+            header_layout.add_widget(Label(text="[b]Cant. Vendida[/b]", markup=True, color=(0.1, 0.1, 0.1, 1), font_size='15sp'))
+            header_layout.add_widget(Label(text="[b]Total Ingresos[/b]", markup=True, color=(0.1, 0.1, 0.1, 1), font_size='15sp'))
+            layout.add_widget(header_layout)
+
+            for prod, cant, dinero in resultados:
+                row = BoxLayout(size_hint_y=None, height=dp(45))
+                row.add_widget(Label(text=str(prod), color=(0, 0, 0, 1), font_size='14sp'))
+                row.add_widget(Label(text=str(cant), color=(0, 0, 0, 1), font_size='14sp', bold=True))
+                row.add_widget(Label(text=f"${dinero:.2f}", color=(0, 0, 0, 1), font_size='14sp'))
+                layout.add_widget(row)
+
+    def imprimir_texto_directo(self, texto):
+        comando_negrita = b'\x1b\x45\x01'
+        comando_normal = b'\x1b\x45\x00'
+        bytes_ticket = comando_negrita + b"COMPROBANTE\n" + comando_normal + texto.encode('utf-8', errors='ignore') + b"\n\n\n"
+        
+        if platform == 'android':
+            try:
+                bluetooth_adapter = BluetoothAdapter.getDefaultAdapter()
+                paired_devices = bluetooth_adapter.getBondedDevices().toArray()
+                socket = None
+                for device in paired_devices:
+                    nombre_dev = device.getName().lower()
+                    if "mp210" in nombre_dev or "printer" in nombre_dev or "mtp" in nombre_dev or "rp" in nombre_dev:
+                        uuid = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
+                        socket = device.createInsecureRfcommSocketToServiceRecord(uuid)
+                        socket.connect()
+                        break
+                
+                if socket:
+                    output_stream = socket.getOutputStream()
+                    output_stream.write(bytes_ticket)
+                    output_stream.flush()
+                    socket.close()
+            except Exception as e:
+                print(f"Error Bluetooth: {e}")
+        else:
+            print("Simulación de impresión directa:")
+            print(texto)
+
+    def toggle_menu(self):
+        nav = self.ids.nav_panel
+        if self.menu_abierto:
+            nav.width = 0
+            self.menu_abierto = False
+        else:
+            nav.width = dp(260)
+            self.menu_abierto = True
+
+    def cambiar_pantalla(self, nombre_pantalla):
+        self.ids.sm.current = nombre_pantalla
+        nombres = {
+            'recibos': "Impresión de Recibos",
+            'clientes': "Clientes",
+            'productos': "Productos",
+            'inventarios': "Inventarios",
+            'informes': "Reporte del Día",
+            'ventas_diarias': "Ventas Diarias (Historial)",
+            'mas_vendidos': "Productos Más Vendidos",
+            'reportes_guardados': "Reportes Guardados",
+            'gastos': "Gastos / Compras",
+            'recibos_anteriores': "Recibos anteriores"
+        }
+        self.titulo_pantalla = nombres.get(nombre_pantalla, "POS")
+        self.ids.nav_panel.width = 0
+        self.menu_abierto = False
+        if nombre_pantalla == 'inventarios':
+            self.cargar_inventario_tiempo_real()
+        elif nombre_pantalla == 'ventas_diarias':
+            self.cargar_ventas_diarias_historial()
+        elif nombre_pantalla == 'mas_vendidos':
+            self.cargar_productos_mas_vendidos_pantalla()
+        elif nombre_pantalla == 'reportes_guardados':
+            self.cargar_lista_reportes_guardados()
+        elif nombre_pantalla == 'recibos_anteriores':
+            self.cargar_recibos_anteriores()
+
+    def imprimir_ticket(self):
+        comando_negrita = b'\x1b\x45\x01'
+        comando_normal = b'\x1b\x45\x00'
+        
+        cliente = self.ids.spinner_cliente.text
+        total_general = sum(item['subtotal'] for item in self.carrito) if self.carrito else 0.0
+
+        texto_ticket = (
+            comando_negrita + b"ABARROTES CERF S.A.\n" +
+            comando_normal +
+            b"Cliente: " + cliente.encode('utf-8', errors='ignore') + b"\n" +
+            b"--------------------------------\n" +
+            b"Cant   Articulo       Subtotal\n"
+        )
+        for item in self.carrito:
+            linea = f"{item['cantidad']:<6} {item['nombre']:<10} ${item['subtotal']:.2f}\n"
+            texto_ticket += linea.encode('utf-8', errors='ignore')
+
+        texto_ticket += (
+            b"--------------------------------\n" +
+            comando_negrita + f"TOTAL: ${total_general:.2f}\n".encode('utf-8') +
+            comando_normal +
+            b"Gracias por su preferencia\n\n\n"
+        )
+        
+        if platform == 'android':
+            try:
+                bluetooth_adapter = BluetoothAdapter.getDefaultAdapter()
+                paired_devices = bluetooth_adapter.getBondedDevices().toArray()
+                socket = None
+                for device in paired_devices:
+                    nombre_dev = device.getName().lower()
+                    if "mp210" in nombre_dev or "printer" in nombre_dev or "mtp" in nombre_dev or "rp" in nombre_dev:
+                        uuid = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
+                        socket = device.createInsecureRfcommSocketToServiceRecord(uuid)
+                        socket.connect()
+                        break
+                
+                if socket:
+                    output_stream = socket.getOutputStream()
+                    output_stream.write(texto_ticket)
+                    output_stream.flush()
+                    socket.close()
+            except Exception as e:
+                print(f"Error Bluetooth: {e}")
+        else:
+            print("Simulación de impresión en PC:")
+            print(texto_ticket.decode('utf-8', errors='ignore'))
+
 
 class MiAppPOS(App):
     def build(self):
@@ -529,9 +1649,10 @@ class MiAppPOS(App):
                 Permission.BLUETOOTH
             ], callback)
             
-        self.title = "Sistema POS - Ruta de Distribución"
         inicializar_db()
-        return PuntoDeVenta()
+        Builder.load_string(KV)
+        return MenuDrawer()
+
 
 if __name__ == '__main__':
     MiAppPOS().run()
