@@ -3,6 +3,7 @@ from datetime import datetime
 from kivy.app import App
 from kivy.lang import Builder
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.properties import StringProperty
 from kivy.utils import platform
@@ -76,168 +77,18 @@ def inicializar_db():
 
 KV = '''
 <MenuDrawer>:
-    orientation: 'horizontal'
+    canvas.before:
+        Color:
+            rgba: 0.92, 0.92, 0.92, 1
+        Rectangle:
+            pos: self.pos
+            size: self.size
     
-    # Panel lateral deslizable (Menú Hamburguesa)
-    BoxLayout:
-        id: nav_panel
-        orientation: 'vertical'
-        size_hint_x: None
-        width: dp(0)
-        canvas.before:
-            Color:
-                rgba: 0.96, 0.96, 0.96, 1
-            Rectangle:
-                pos: self.pos
-                size: self.size
-        
-        # Cabecera del Menú Lateral
-        BoxLayout:
-            size_hint_y: None
-            height: dp(120)
-            padding: 15
-            canvas.before:
-                Color:
-                    rgba: 0.15, 0.45, 0.75, 1
-                Rectangle:
-                    pos: self.pos
-                    size: self.size
-            Label:
-                text: "Impresion Termica\\nBluetooth"
-                color: 1, 1, 1, 1
-                font_size: '18sp'
-                bold: True
-
-        ScrollView:
-            BoxLayout:
-                orientation: 'vertical'
-                size_hint_y: None
-                height: self.minimum_height
-                spacing: dp(2)
-                padding: [0, 10, 0, 10]
-
-                Label:
-                    text: "POS"
-                    color: 0.4, 0.4, 0.4, 1
-                    size_hint_y: None
-                    height: dp(30)
-                    font_size: '14sp'
-                    bold: True
-                    padding_x: 15
-
-                Button:
-                    text: "   Impresión de Recibos"
-                    halign: 'left'
-                    valign: 'middle'
-                    size_hint_y: None
-                    height: dp(50)
-                    background_color: 1, 1, 1, 1
-                    color: 0.1, 0.1, 0.1, 1
-                    font_size: '16sp'
-                    on_press: root.cambiar_pantalla('recibos')
-
-                Button:
-                    text: "   Clientes"
-                    halign: 'left'
-                    valign: 'middle'
-                    size_hint_y: None
-                    height: dp(50)
-                    background_color: 1, 1, 1, 1
-                    color: 0.1, 0.1, 0.1, 1
-                    font_size: '16sp'
-                    on_press: root.cambiar_pantalla('clientes')
-
-                Button:
-                    text: "   Productos"
-                    halign: 'left'
-                    valign: 'middle'
-                    size_hint_y: None
-                    height: dp(50)
-                    background_color: 1, 1, 1, 1
-                    color: 0.1, 0.1, 0.1, 1
-                    font_size: '16sp'
-                    on_press: root.cambiar_pantalla('productos')
-
-                Button:
-                    text: "   Inventarios"
-                    halign: 'left'
-                    valign: 'middle'
-                    size_hint_y: None
-                    height: dp(50)
-                    background_color: 1, 1, 1, 1
-                    color: 0.1, 0.1, 0.1, 1
-                    font_size: '16sp'
-                    on_press: root.cambiar_pantalla('inventarios')
-
-                Button:
-                    text: "   Reporte del Día"
-                    halign: 'left'
-                    valign: 'middle'
-                    size_hint_y: None
-                    height: dp(50)
-                    background_color: 1, 1, 1, 1
-                    color: 0.1, 0.1, 0.1, 1
-                    font_size: '16sp'
-                    on_press: root.cambiar_pantalla('informes')
-
-                Button:
-                    text: "   Ventas Diarias (Historial)"
-                    halign: 'left'
-                    valign: 'middle'
-                    size_hint_y: None
-                    height: dp(50)
-                    background_color: 1, 1, 1, 1
-                    color: 0.1, 0.1, 0.1, 1
-                    font_size: '16sp'
-                    on_press: root.cambiar_pantalla('ventas_diarias')
-
-                Button:
-                    text: "   Productos Más Vendidos"
-                    halign: 'left'
-                    valign: 'middle'
-                    size_hint_y: None
-                    height: dp(50)
-                    background_color: 1, 1, 1, 1
-                    color: 0.1, 0.1, 0.1, 1
-                    font_size: '16sp'
-                    on_press: root.cambiar_pantalla('mas_vendidos')
-
-                Button:
-                    text: "   Reportes Guardados"
-                    halign: 'left'
-                    valign: 'middle'
-                    size_hint_y: None
-                    height: dp(50)
-                    background_color: 1, 1, 1, 1
-                    color: 0.1, 0.1, 0.1, 1
-                    font_size: '16sp'
-                    on_press: root.cambiar_pantalla('reportes_guardados')
-
-                Button:
-                    text: "   Gastos / Compras"
-                    halign: 'left'
-                    valign: 'middle'
-                    size_hint_y: None
-                    height: dp(50)
-                    background_color: 1, 1, 1, 1
-                    color: 0.1, 0.1, 0.1, 1
-                    font_size: '16sp'
-                    on_press: root.cambiar_pantalla('gastos')
-
-                Button:
-                    text: "   Recibos anteriores"
-                    halign: 'left'
-                    valign: 'middle'
-                    size_hint_y: None
-                    height: dp(50)
-                    background_color: 1, 1, 1, 1
-                    color: 0.1, 0.1, 0.1, 1
-                    font_size: '16sp'
-                    on_press: root.cambiar_pantalla('recibos_anteriores')
-
-    # Área principal de la aplicación
+    # Área principal de la aplicación (ocupa el 100% de la pantalla)
     BoxLayout:
         orientation: 'vertical'
+        size_hint: 1, 1
+        pos_hint: {'x': 0, 'y': 0}
         
         # Barra superior con botón de menú
         BoxLayout:
@@ -936,9 +787,169 @@ KV = '''
                             size_hint_y: None
                             height: self.minimum_height
                             spacing: dp(5)
+
+    # Panel lateral deslizable (Menú Flotante Superpuesto / Overlay)
+    # Declarado al final para que se dibuje ENCIMA de la pantalla principal
+    BoxLayout:
+        id: nav_panel
+        orientation: 'vertical'
+        size_hint: None, 1
+        width: dp(0)
+        x: 0
+        y: 0
+        canvas.before:
+            Color:
+                rgba: 0.96, 0.96, 0.96, 1
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        
+        # Cabecera del Menú Lateral
+        BoxLayout:
+            size_hint_y: None
+            height: dp(120)
+            padding: 15
+            canvas.before:
+                Color:
+                    rgba: 0.15, 0.45, 0.75, 1
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+            Label:
+                text: "Impresion Termica\\nBluetooth"
+                color: 1, 1, 1, 1
+                font_size: '18sp'
+                bold: True
+
+        ScrollView:
+            BoxLayout:
+                orientation: 'vertical'
+                size_hint_y: None
+                height: self.minimum_height
+                spacing: dp(2)
+                padding: [0, 10, 0, 10]
+
+                Label:
+                    text: "POS"
+                    color: 0.4, 0.4, 0.4, 1
+                    size_hint_y: None
+                    height: dp(30)
+                    font_size: '14sp'
+                    bold: True
+                    padding_x: 15
+
+                Button:
+                    text: "   Impresión de Recibos"
+                    halign: 'left'
+                    valign: 'middle'
+                    size_hint_y: None
+                    height: dp(50)
+                    background_color: 1, 1, 1, 1
+                    color: 0.1, 0.1, 0.1, 1
+                    font_size: '16sp'
+                    on_press: root.cambiar_pantalla('recibos')
+
+                Button:
+                    text: "   Clientes"
+                    halign: 'left'
+                    valign: 'middle'
+                    size_hint_y: None
+                    height: dp(50)
+                    background_color: 1, 1, 1, 1
+                    color: 0.1, 0.1, 0.1, 1
+                    font_size: '16sp'
+                    on_press: root.cambiar_pantalla('clientes')
+
+                Button:
+                    text: "   Productos"
+                    halign: 'left'
+                    valign: 'middle'
+                    size_hint_y: None
+                    height: dp(50)
+                    background_color: 1, 1, 1, 1
+                    color: 0.1, 0.1, 0.1, 1
+                    font_size: '16sp'
+                    on_press: root.cambiar_pantalla('productos')
+
+                Button:
+                    text: "   Inventarios"
+                    halign: 'left'
+                    valign: 'middle'
+                    size_hint_y: None
+                    height: dp(50)
+                    background_color: 1, 1, 1, 1
+                    color: 0.1, 0.1, 0.1, 1
+                    font_size: '16sp'
+                    on_press: root.cambiar_pantalla('inventarios')
+
+                Button:
+                    text: "   Reporte del Día"
+                    halign: 'left'
+                    valign: 'middle'
+                    size_hint_y: None
+                    height: dp(50)
+                    background_color: 1, 1, 1, 1
+                    color: 0.1, 0.1, 0.1, 1
+                    font_size: '16sp'
+                    on_press: root.cambiar_pantalla('informes')
+
+                Button:
+                    text: "   Ventas Diarias (Historial)"
+                    halign: 'left'
+                    valign: 'middle'
+                    size_hint_y: None
+                    height: dp(50)
+                    background_color: 1, 1, 1, 1
+                    color: 0.1, 0.1, 0.1, 1
+                    font_size: '16sp'
+                    on_press: root.cambiar_pantalla('ventas_diarias')
+
+                Button:
+                    text: "   Productos Más Vendidos"
+                    halign: 'left'
+                    valign: 'middle'
+                    size_hint_y: None
+                    height: dp(50)
+                    background_color: 1, 1, 1, 1
+                    color: 0.1, 0.1, 0.1, 1
+                    font_size: '16sp'
+                    on_press: root.cambiar_pantalla('mas_vendidos')
+
+                Button:
+                    text: "   Reportes Guardados"
+                    halign: 'left'
+                    valign: 'middle'
+                    size_hint_y: None
+                    height: dp(50)
+                    background_color: 1, 1, 1, 1
+                    color: 0.1, 0.1, 0.1, 1
+                    font_size: '16sp'
+                    on_press: root.cambiar_pantalla('reportes_guardados')
+
+                Button:
+                    text: "   Gastos / Compras"
+                    halign: 'left'
+                    valign: 'middle'
+                    size_hint_y: None
+                    height: dp(50)
+                    background_color: 1, 1, 1, 1
+                    color: 0.1, 0.1, 0.1, 1
+                    font_size: '16sp'
+                    on_press: root.cambiar_pantalla('gastos')
+
+                Button:
+                    text: "   Recibos anteriores"
+                    halign: 'left'
+                    valign: 'middle'
+                    size_hint_y: None
+                    height: dp(50)
+                    background_color: 1, 1, 1, 1
+                    color: 0.1, 0.1, 0.1, 1
+                    font_size: '16sp'
+                    on_press: root.cambiar_pantalla('recibos_anteriores')
 '''
 
-class MenuDrawer(BoxLayout):
+class MenuDrawer(FloatLayout):
     titulo_pantalla = StringProperty("Impresión de Recibos")
     menu_abierto = False
 
@@ -1296,10 +1307,9 @@ class MenuDrawer(BoxLayout):
             texto_ticket += f"TOTAL: ${total:.2f}\n"
             texto_ticket += "Gracias por su preferencia\n\n\n"
 
-            # POPUP CON FONDO BLANCO (Ajuste aplicado)[cite: 4]
             content = BoxLayout(orientation='vertical', padding=10, spacing=10)
             with content.canvas.before:
-                Color(1, 1, 1, 1)  # Blanco RGBA
+                Color(1, 1, 1, 1)
                 self.bg_rect_recibo = Rectangle(pos=content.pos, size=content.size)
             content.bind(pos=lambda s, p: setattr(self.bg_rect_recibo, 'pos', p),
                          size=lambda s, sz: setattr(self.bg_rect_recibo, 'size', sz))
@@ -1371,10 +1381,9 @@ class MenuDrawer(BoxLayout):
         else:
             texto_reporte += "No hay gastos registrados hoy.\n"
 
-        # POPUP CON FONDO BLANCO (Ajuste aplicado)[cite: 4]
         content = BoxLayout(orientation='vertical', padding=10, spacing=10)
         with content.canvas.before:
-            Color(1, 1, 1, 1)  # Blanco RGBA
+            Color(1, 1, 1, 1)
             self.bg_rect_reporte = Rectangle(pos=content.pos, size=content.size)
         content.bind(pos=lambda s, p: setattr(self.bg_rect_reporte, 'pos', p),
                      size=lambda s, sz: setattr(self.bg_rect_reporte, 'size', sz))
@@ -1458,7 +1467,6 @@ class MenuDrawer(BoxLayout):
             fecha_rep, contenido = res
             content = BoxLayout(orientation='vertical', padding=10, spacing=10)
             
-            # Fondo blanco también para reportes guardados[cite: 4]
             with content.canvas.before:
                 Color(1, 1, 1, 1)
                 self.bg_rect_guardado = Rectangle(pos=content.pos, size=content.size)
