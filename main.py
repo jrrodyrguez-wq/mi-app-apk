@@ -789,7 +789,6 @@ KV = '''
                             spacing: dp(5)
 
     # Panel lateral deslizable (Menú Flotante Superpuesto / Overlay)
-    # Declarado al final para que se dibuje ENCIMA de la pantalla principal
     BoxLayout:
         id: nav_panel
         orientation: 'vertical'
@@ -1527,12 +1526,21 @@ class MenuDrawer(FloatLayout):
                 layout.add_widget(row)
 
     def imprimir_texto_directo(self, texto):
-        comando_negrita = b'\x1b\x45\x01'
-        comando_normal = b'\x1b\x45\x00'
-        bytes_ticket = comando_negrita + b"COMPROBANTE\n" + comando_normal + texto.encode('utf-8', errors='ignore') + b"\n\n\n"
-        
-        if platform == 'android':
-            try:
+        try:
+            bytes_ticket = bytearray()
+            # 1. Activar negrita / alta visibilidad (ESC/POS)
+            bytes_ticket.extend(b'\x1B\x45\x01')
+            
+            bytes_ticket.extend(texto.encode('utf-8', errors='ignore'))
+            bytes_ticket.extend(b"\n\n\n")
+            
+            # 2. Desactivar negrita
+            bytes_ticket.extend(b'\x1B\x45\x00')
+            
+            # 3. Corte automático de papel
+            bytes_ticket.extend(b'\x1D\x56\x41\x00')
+            
+            if platform == 'android':
                 bluetooth_adapter = BluetoothAdapter.getDefaultAdapter()
                 paired_devices = bluetooth_adapter.getBondedDevices().toArray()
                 socket = None
@@ -1546,14 +1554,14 @@ class MenuDrawer(FloatLayout):
                 
                 if socket:
                     output_stream = socket.getOutputStream()
-                    output_stream.write(bytes_ticket)
+                    output_stream.write(bytes(bytes_ticket))
                     output_stream.flush()
                     socket.close()
-            except Exception as e:
-                print(f"Error Bluetooth: {e}")
-        else:
-            print("Simulación de impresión directa:")
-            print(texto)
+            else:
+                print("Simulación de impresión directa:")
+                print(bytes_ticket.decode('utf-8', errors='ignore'))
+        except Exception as e:
+            print(f"Error Bluetooth directo: {e}")
 
     def toggle_menu(self):
         nav = self.ids.nav_panel
@@ -1593,32 +1601,48 @@ class MenuDrawer(FloatLayout):
             self.cargar_recibos_anteriores()
 
     def imprimir_ticket(self):
-        comando_negrita = b'\x1b\x45\x01'
-        comando_normal = b'\x1b\x45\x00'
+        if not self.carrito:
+            return
         
         cliente = self.ids.spinner_cliente.text
-        total_general = sum(item['subtotal'] for item in self.carrito) if self.carrito else 0.0
+        total_general = sum(item['subtotal'] for item in self.carrito)
 
-        texto_ticket = (
-            comando_negrita + b"ABARROTES CERF S.A.\n" +
-            comando_normal +
-            b"Cliente: " + cliente.encode('utf-8', errors='ignore') + b"\n" +
-            b"--------------------------------\n" +
-            b"Cant   Articulo       Subtotal\n"
-        )
-        for item in self.carrito:
-            linea = f"{item['cantidad']:<6} {item['nombre']:<10} ${item['subtotal']:.2f}\n"
-            texto_ticket += linea.encode('utf-8', errors='ignore')
-
-        texto_ticket += (
-            b"--------------------------------\n" +
-            comando_negrita + f"TOTAL: ${total_general:.2f}\n".encode('utf-8') +
-            comando_normal +
-            b"Gracias por su preferencia\n\n\n"
-        )
-        
-        if platform == 'android':
-            try:
+        try:
+            bytes_ticket = bytearray()
+            
+            # 1. Activar negrita / alta visibilidad (ESC/POS)
+            bytes_ticket.extend(b'\x1B\x45\x01')
+            
+            bytes_ticket.extend(b"================================\n")
+            bytes_ticket.extend(b"       SISTEMA POS RUTA         \n")
+            bytes_ticket.extend(b"================================\n")
+            bytes_ticket.extend(f"Cliente: {cliente}\n".encode('utf-8', errors='ignore'))
+            bytes_ticket.extend(f"Fecha: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n".encode('utf-8'))
+            bytes_ticket.extend(b"--------------------------------\n")
+            bytes_ticket.extend(b"CANT  PRODUCTO          TOTAL\n")
+            bytes_ticket.extend(b"--------------------------------\n")
+            
+            for item in self.carrito:
+                cant = item.get('cantidad', 1)
+                nombre = item.get('nombre', 'Articulo')[:15].ljust(15)
+                subtotal = f"${item.get('subtotal', 0.0):.2f}"
+                linea = f"{cant:<5} {nombre} {subtotal:>8}\n"
+                bytes_ticket.extend(linea.encode('utf-8', errors='ignore'))
+                
+            bytes_ticket.extend(b"--------------------------------\n")
+            total_str = f"TOTAL:    ${total_general:.2f}\n"
+            bytes_ticket.extend(total_str.encode('utf-8'))
+            bytes_ticket.extend(b"\n")
+            bytes_ticket.extend("   ¡Gracias por su compra!      \n".encode('utf-8'))
+            bytes_ticket.extend(b"\n\n\n")
+            
+            # 2. Desactivar negrita
+            bytes_ticket.extend(b'\x1B\x45\x00')
+            
+            # 3. Corte automático de papel
+            bytes_ticket.extend(b'\x1D\x56\x41\x00')
+            
+            if platform == 'android':
                 bluetooth_adapter = BluetoothAdapter.getDefaultAdapter()
                 paired_devices = bluetooth_adapter.getBondedDevices().toArray()
                 socket = None
@@ -1632,14 +1656,15 @@ class MenuDrawer(FloatLayout):
                 
                 if socket:
                     output_stream = socket.getOutputStream()
-                    output_stream.write(texto_ticket)
+                    output_stream.write(bytes(bytes_ticket))
                     output_stream.flush()
                     socket.close()
-            except Exception as e:
-                print(f"Error Bluetooth: {e}")
-        else:
-            print("Simulación de impresión en PC:")
-            print(texto_ticket.decode('utf-8', errors='ignore'))
+            else:
+                print("Simulación de impresión en PC:")
+                print(bytes_ticket.decode('utf-8', errors='ignore'))
+                
+        except Exception as e:
+            print(f"Error al imprimir ticket: {e}")
 
 
 class MiAppPOS(App):
