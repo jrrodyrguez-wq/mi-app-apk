@@ -104,208 +104,51 @@ KV = '''
             size: self.size
     
     BoxLayout:
-        orientation: 'horizontal'
+        orientation: 'vertical'
         size_hint: 1, 1
-        pos_hint: {'x': 0, 'y': 0}
 
-        # Panel lateral izquierdo (Menú)
+        # Barra superior estática
         BoxLayout:
-            id: nav_panel
-            orientation: 'vertical'
-            size_hint: None, 1
-            width: dp(260)
+            size_hint_y: None
+            height: dp(55)
             canvas.before:
                 Color:
-                    rgba: 0.96, 0.96, 0.96, 1
+                    rgba: 0.15, 0.45, 0.75, 1
                 Rectangle:
                     pos: self.pos
                     size: self.size
+            Button:
+                text: "≡"
+                size_hint_x: None
+                width: dp(60)
+                font_size: '26sp'
+                background_color: 0, 0, 0, 0
+                color: 1, 1, 1, 1
+                on_press: root.toggle_menu()
+            Label:
+                text: root.titulo_pantalla
+                color: 1, 1, 1, 1
+                font_size: '18sp'
+                bold: True
+                halign: 'left'
+                valign: 'middle'
+
+        # Contenedor de las pantallas del sistema
+        ScreenManager:
+            id: sm
             
-            BoxLayout:
-                size_hint_y: None
-                height: dp(120)
-                padding: 15
-                canvas.before:
-                    Color:
-                        rgba: 0.15, 0.45, 0.75, 1
-                    Rectangle:
-                        pos: self.pos
-                        size: self.size
-                Label:
-                    text: "SISTEMA POS RUTA"
-                    color: 1, 1, 1, 1
-                    font_size: '18sp'
-                    bold: True
-
-            ScrollView:
-                BoxLayout:
-                    orientation: 'vertical'
-                    size_hint_y: None
-                    height: self.minimum_height
-                    spacing: dp(2)
-                    padding: [0, 10, 0, 10]
-
-                    Button:
-                        text: "   Impresión de Recibos"
-                        halign: 'left'
-                        valign: 'middle'
-                        size_hint_y: None
-                        height: dp(50)
-                        background_color: 0.3, 0.6, 0.9, 1
-                        color: 1, 1, 1, 1
-                        font_size: '16sp'
-                        on_press: root.cambiar_pantalla('recibos')
-
-                    Button:
-                        text: "   Pedidos y WhatsApp"
-                        halign: 'left'
-                        valign: 'middle'
-                        size_hint_y: None
-                        height: dp(50)
-                        background_color: 0.3, 0.6, 0.9, 1
-                        color: 1, 1, 1, 1
-                        font_size: '16sp'
-                        on_press: root.cambiar_pantalla('pedidos')
-
-                    Button:
-                        text: "   Clientes"
-                        halign: 'left'
-                        valign: 'middle'
-                        size_hint_y: None
-                        height: dp(50)
-                        background_color: 0.3, 0.6, 0.9, 1
-                        color: 1, 1, 1, 1
-                        font_size: '16sp'
-                        on_press: root.cambiar_pantalla('clientes')
-
-                    Button:
-                        text: "   Productos"
-                        halign: 'left'
-                        valign: 'middle'
-                        size_hint_y: None
-                        height: dp(50)
-                        background_color: 0.3, 0.6, 0.9, 1
-                        color: 1, 1, 1, 1
-                        font_size: '16sp'
-                        on_press: root.cambiar_pantalla('productos')
-
-                    Button:
-                        text: "   Inventarios"
-                        halign: 'left'
-                        valign: 'middle'
-                        size_hint_y: None
-                        height: dp(50)
-                        background_color: 0.3, 0.6, 0.9, 1
-                        color: 1, 1, 1, 1
-                        font_size: '16sp'
-                        on_press: root.cambiar_pantalla('inventarios')
-
-                    Button:
-                        text: "   Reporte del Día"
-                        halign: 'left'
-                        valign: 'middle'
-                        size_hint_y: None
-                        height: dp(50)
-                        background_color: 0.3, 0.6, 0.9, 1
-                        color: 1, 1, 1, 1
-                        font_size: '16sp'
-                        on_press: root.cambiar_pantalla('informes')
-
-                    Button:
-                        text: "   Ventas Diarias (Historial)"
-                        halign: 'left'
-                        valign: 'middle'
-                        size_hint_y: None
-                        height: dp(50)
-                        background_color: 0.3, 0.6, 0.9, 1
-                        color: 1, 1, 1, 1
-                        font_size: '16sp'
-                        on_press: root.cambiar_pantalla('ventas_diarias')
-
-                    Button:
-                        text: "   Productos Más Vendidos"
-                        halign: 'left'
-                        valign: 'middle'
-                        size_hint_y: None
-                        height: dp(50)
-                        background_color: 0.3, 0.6, 0.9, 1
-                        color: 1, 1, 1, 1
-                        font_size: '16sp'
-                        on_press: root.cambiar_pantalla('mas_vendidos')
-
-                    Button:
-                        text: "   Reportes Guardados"
-                        halign: 'left'
-                        valign: 'middle'
-                        size_hint_y: None
-                        height: dp(50)
-                        background_color: 0.3, 0.6, 0.9, 1
-                        color: 1, 1, 1, 1
-                        font_size: '16sp'
-                        on_press: root.cambiar_pantalla('reportes_guardados')
-
-                    Button:
-                        text: "   Gastos / Compras"
-                        halign: 'left'
-                        valign: 'middle'
-                        size_hint_y: None
-                        height: dp(50)
-                        background_color: 0.3, 0.6, 0.9, 1
-                        color: 1, 1, 1, 1
-                        font_size: '16sp'
-                        on_press: root.cambiar_pantalla('gastos')
-
-                    Button:
-                        text: "   Recibos anteriores"
-                        halign: 'left'
-                        valign: 'middle'
-                        size_hint_y: None
-                        height: dp(50)
-                        background_color: 0.3, 0.6, 0.9, 1
-                        color: 1, 1, 1, 1
-                        font_size: '16sp'
-                        on_press: root.cambiar_pantalla('recibos_anteriores')
-
-        # Área principal a la derecha
-        BoxLayout:
-            orientation: 'vertical'
-            size_hint: 1, 1
-            
-            BoxLayout:
-                size_hint_y: None
-                height: dp(55)
-                canvas.before:
-                    Color:
-                        rgba: 0.15, 0.45, 0.75, 1
-                    Rectangle:
-                        pos: self.pos
-                        size: self.size
-                Button:
-                    text: "≡"
-                    size_hint_x: None
-                    width: dp(60)
-                    font_size: '26sp'
-                    background_color: 0, 0, 0, 0
-                    color: 1, 1, 1, 1
-                    on_press: root.toggle_menu()
-                Label:
-                    text: root.titulo_pantalla
-                    color: 1, 1, 1, 1
-                    font_size: '18sp'
-                    bold: True
-                    halign: 'left'
-                    valign: 'middle'
-                
-            ScreenManager:
-                id: sm
-                
-                # 1. IMPRESION DE RECIBOS
-                Screen:
-                    name: 'recibos'
+            # 1. IMPRESION DE RECIBOS (Optimizado para Teléfono)
+            Screen:
+                name: 'recibos'
+                ScrollView:
+                    do_scroll_x: False
+                    do_scroll_y: True
                     BoxLayout:
-                        orientation: 'horizontal'
-                        padding: dp(15)
+                        orientation: 'vertical'
+                        padding: dp(10)
                         spacing: dp(10)
+                        size_hint_y: None
+                        height: self.minimum_height
                         canvas.before:
                             Color:
                                 rgba: 0.92, 0.92, 0.92, 1
@@ -313,542 +156,292 @@ KV = '''
                                 pos: self.pos
                                 size: self.size
 
-                        # --- PANEL IZQUIERDO: BUSCADORES ---
+                        # --- CLIENTE Y CARRITO ---
                         BoxLayout:
-                            orientation: 'vertical'
-                            size_hint_x: 0.40
+                            size_hint_y: None
+                            height: dp(45)
                             spacing: dp(10)
-
-                            Label:
-                                text: "Buscar Productos"
-                                size_hint_y: None
-                                height: dp(25)
-                                color: 0.1, 0.1, 0.1, 1
-                                bold: True
+                            Spinner:
+                                id: spinner_cliente
+                                text: "Cliente General"
+                                values: []
                                 font_size: '14sp'
-
-                            TextInput:
-                                id: input_prod
-                                hint_text: "Nombre o código..."
-                                size_hint_y: None
-                                height: dp(40)
-                                multiline: False
-                                foreground_color: 0, 0, 0, 1
                                 background_color: 1, 1, 1, 1
-                                cursor_color: 0, 0, 0, 1
-                                on_text: root.buscar_productos(self.text)
-
-                            RecycleView:
-                                id: rv_productos
-                                data: root.productos_data
-                                viewclass: 'BotonLista'
-                                RecycleBoxLayout:
-                                    default_size: None, dp(40)
-                                    default_size_hint: 1, None
-                                    size_hint_y: None
-                                    height: self.minimum_height
-                                    orientation: 'vertical'
-
-                            Label:
-                                text: "Buscar Clientes"
-                                size_hint_y: None
-                                height: dp(25)
-                                color: 0.1, 0.1, 0.1, 1
-                                bold: True
-                                font_size: '14sp'
-
-                            TextInput:
-                                id: input_cli
-                                hint_text: "Nombre o teléfono..."
-                                size_hint_y: None
-                                height: dp(40)
-                                multiline: False
-                                foreground_color: 0, 0, 0, 1
-                                background_color: 1, 1, 1, 1
-                                cursor_color: 0, 0, 0, 1
-                                on_text: root.buscar_clientes(self.text)
-
-                            RecycleView:
-                                id: rv_clientes
-                                data: root.clientes_data
-                                viewclass: 'BotonLista'
-                                RecycleBoxLayout:
-                                    default_size: None, dp(40)
-                                    default_size_hint: 1, None
-                                    size_hint_y: None
-                                    height: self.minimum_height
-                                    orientation: 'vertical'
-
-                        # --- ÁREA DERECHA: CARRITO Y TICKET ---
-                        BoxLayout:
-                            orientation: 'vertical'
-                            size_hint_x: 0.60
-                            spacing: dp(10)
-
-                            BoxLayout:
-                                size_hint_y: None
-                                height: dp(45)
-                                spacing: dp(10)
-                                Spinner:
-                                    id: spinner_cliente
-                                    text: "Cliente General"
-                                    values: []
-                                    font_size: '14sp'
-                                    background_color: 1, 1, 1, 1
-                                    color: 0, 0, 0, 1
-                                    size_hint_x: 0.7
-                                Button:
-                                    text: "Recargar"
-                                    size_hint_x: 0.3
-                                    background_color: 0.3, 0.6, 0.9, 1
-                                    color: 1, 1, 1, 1
-                                    bold: True
-                                    font_size: '12sp'
-                                    on_press: root.cargar_datos_db()
-
-                            Label:
-                                text: "Ticket de Venta / Carrito"
-                                size_hint_y: None
-                                height: dp(30)
-                                font_size: '16sp'
                                 color: 0, 0, 0, 1
+                                size_hint_x: 0.7
+                            Button:
+                                text: "Recargar"
+                                size_hint_x: 0.3
+                                background_color: 0.3, 0.6, 0.9, 1
+                                color: 1, 1, 1, 1
                                 bold: True
+                                font_size: '12sp'
+                                on_press: root.cargar_datos_db()
 
-                            ScrollView:
-                                BoxLayout:
-                                    id: carrito_layout
-                                    orientation: 'vertical'
-                                    size_hint_y: None
-                                    height: self.minimum_height
-                                    spacing: dp(5)
-                                    Label:
-                                        text: "Carrito vacío"
-                                        color: 0.3, 0.3, 0.3, 1
-                                        font_size: '14sp'
-                                        size_hint_y: None
-                                        height: dp(40)
+                        Label:
+                            text: "Ticket de Venta / Carrito"
+                            size_hint_y: None
+                            height: dp(25)
+                            font_size: '16sp'
+                            color: 0, 0, 0, 1
+                            bold: True
 
-                            BoxLayout:
-                                size_hint_y: None
-                                height: dp(120)
-                                orientation: 'vertical'
-                                canvas.before:
-                                    Color:
-                                        rgba: 1, 1, 1, 1
-                                    Rectangle:
-                                        pos: self.pos
-                                        size: self.size
-                                padding: dp(10)
-                                spacing: dp(5)
-                                Label:
-                                    id: lbl_subtotal
-                                    text: "Subtotal: $ 0.00"
-                                    color: 0, 0, 0, 1
-                                    font_size: '14sp'
-                                    halign: 'right'
-                                Label:
-                                    id: lbl_total
-                                    text: "Total: $ 0.00"
-                                    color: 0, 0, 0, 1
-                                    font_size: '18sp'
-                                    bold: True
-                                BoxLayout:
-                                    spacing: dp(10)
-                                    size_hint_y: None
-                                    height: dp(45)
-                                    Button:
-                                        text: "IMPRIMIR"
-                                        background_color: 0.1, 0.6, 0.2, 1
-                                        color: 1, 1, 1, 1
-                                        font_size: '14sp'
-                                        bold: True
-                                        on_press: root.imprimir_ticket()
-                                    Button:
-                                        text: "GUARDAR"
-                                        background_color: 0.3, 0.6, 0.9, 1
-                                        color: 1, 1, 1, 1
-                                        font_size: '14sp'
-                                        bold: True
-                                        on_press: root.guardar_venta()
-
-                # PANTALLA ARRASTRABLE: PEDIDOS Y WHATSAPP
-                Screen:
-                    name: 'pedidos'
-                    ScrollView:
-                        do_scroll_x: False
-                        do_scroll_y: True
                         BoxLayout:
+                            id: carrito_layout
                             orientation: 'vertical'
-                            padding: dp(20)
-                            spacing: dp(12)
                             size_hint_y: None
                             height: self.minimum_height
+                            spacing: dp(5)
+                            Label:
+                                text: "Carrito vacío"
+                                color: 0.3, 0.3, 0.3, 1
+                                font_size: '14sp'
+                                size_hint_y: None
+                                height: dp(40)
+
+                        BoxLayout:
+                            size_hint_y: None
+                            height: dp(110)
+                            orientation: 'vertical'
                             canvas.before:
                                 Color:
-                                    rgba: 0.92, 0.92, 0.92, 1
+                                    rgba: 1, 1, 1, 1
                                 Rectangle:
                                     pos: self.pos
                                     size: self.size
-
+                            padding: dp(8)
+                            spacing: dp(5)
                             Label:
-                                text: "Registro y Envío de Pedidos por WhatsApp"
+                                id: lbl_subtotal
+                                text: "Subtotal: $ 0.00"
                                 color: 0, 0, 0, 1
-                                font_size: '20sp'
+                                font_size: '13sp'
+                                halign: 'right'
+                            Label:
+                                id: lbl_total
+                                text: "Total: $ 0.00"
+                                color: 0, 0, 0, 1
+                                font_size: '17sp'
                                 bold: True
-                                size_hint_y: None
-                                height: dp(35)
-
                             BoxLayout:
-                                size_hint_y: None
-                                height: dp(50)
                                 spacing: dp(10)
-                                Spinner:
-                                    id: spinner_pedido_cliente
-                                    text: "Seleccionar cliente registrado..."
-                                    values: []
-                                    font_size: '15sp'
-                                    background_color: 1, 1, 1, 1
-                                    color: 0, 0, 0, 1
-                                    on_text: root.rellenar_cliente_pedido(self.text)
+                                size_hint_y: None
+                                height: dp(40)
                                 Button:
-                                    text: "Actualizar Listas"
-                                    size_hint_x: None
-                                    width: dp(130)
+                                    text: "IMPRIMIR"
+                                    background_color: 0.1, 0.6, 0.2, 1
+                                    color: 1, 1, 1, 1
+                                    font_size: '14sp'
+                                    bold: True
+                                    on_press: root.imprimir_ticket()
+                                Button:
+                                    text: "GUARDAR"
                                     background_color: 0.3, 0.6, 0.9, 1
                                     color: 1, 1, 1, 1
+                                    font_size: '14sp'
                                     bold: True
-                                    on_press: root.cargar_datos_db()
+                                    on_press: root.guardar_venta()
 
-                            TextInput:
-                                id: pedido_nombre_cliente
-                                hint_text: "Nombre del cliente o negocio"
-                                foreground_color: 0, 0, 0, 1
-                                background_color: 1, 1, 1, 1
-                                cursor_color: 0, 0, 0, 1
-                                size_hint_y: None
-                                height: dp(45)
-                                font_size: '15sp'
+                        # --- BUSCADOR DE PRODUCTOS ---
+                        Label:
+                            text: "Buscar Productos"
+                            size_hint_y: None
+                            height: dp(25)
+                            color: 0.1, 0.1, 0.1, 1
+                            bold: True
+                            font_size: '14sp'
 
-                            TextInput:
-                                id: pedido_telefono
-                                hint_text: "Número de Teléfono (con código de país, ej: 52614...)"
-                                input_filter: 'int'
-                                foreground_color: 0, 0, 0, 1
-                                background_color: 1, 1, 1, 1
-                                cursor_color: 0, 0, 0, 1
-                                size_hint_y: None
-                                height: dp(45)
-                                font_size: '15sp'
+                        TextInput:
+                            id: input_prod
+                            hint_text: "Nombre o código..."
+                            size_hint_y: None
+                            height: dp(40)
+                            multiline: False
+                            foreground_color: 0, 0, 0, 1
+                            background_color: 1, 1, 1, 1
+                            cursor_color: 0, 0, 0, 1
+                            on_text: root.buscar_productos(self.text)
 
-                            TextInput:
-                                id: pedido_detalle
-                                hint_text: "Detalles del pedido (Productos, cantidades, notas)..."
-                                foreground_color: 0, 0, 0, 1
-                                background_color: 1, 1, 1, 1
-                                cursor_color: 0, 0, 0, 1
-                                size_hint_y: None
-                                height: dp(90)
-                                font_size: '15sp'
-
-                            TextInput:
-                                id: pedido_direccion
-                                hint_text: "Dirección de entrega (Opcional)"
-                                foreground_color: 0, 0, 0, 1
-                                background_color: 1, 1, 1, 1
-                                cursor_color: 0, 0, 0, 1
-                                size_hint_y: None
-                                height: dp(45)
-                                font_size: '15sp'
-
-                            BoxLayout:
-                                size_hint_y: None
-                                height: dp(50)
-                                spacing: dp(15)
-                                Button:
-                                    text: "Guardar Pedido"
-                                    background_color: 0.3, 0.6, 0.9, 1
-                                    color: 1, 1, 1, 1
-                                    font_size: '15sp'
-                                    bold: True
-                                    on_press: root.guardar_nuevo_pedido()
-                                Button:
-                                    text: "Enviar por WhatsApp 📱"
-                                    background_color: 0.1, 0.6, 0.3, 1
-                                    color: 1, 1, 1, 1
-                                    font_size: '15sp'
-                                    bold: True
-                                    on_press: root.enviar_pedido_whatsapp()
-
-                            Label:
-                                text: "Historial de Pedidos Registrados"
-                                color: 0, 0, 0, 1
-                                font_size: '16sp'
-                                bold: True
-                                size_hint_y: None
-                                height: dp(30)
-
-                            BoxLayout:
-                                id: lista_pedidos_layout
-                                orientation: 'vertical'
+                        RecycleView:
+                            id: rv_productos
+                            data: root.productos_data
+                            viewclass: 'BotonLista'
+                            size_hint_y: None
+                            height: dp(160)
+                            RecycleBoxLayout:
+                                default_size: None, dp(40)
+                                default_size_hint: 1, None
                                 size_hint_y: None
                                 height: self.minimum_height
-                                spacing: dp(5)
+                                orientation: 'vertical'
 
-                # 2. CLIENTES
-                Screen:
-                    name: 'clientes'
-                    ScrollView:
-                        BoxLayout:
-                            orientation: 'vertical'
-                            padding: dp(20)
-                            spacing: dp(15)
+                        # --- BUSCADOR DE CLIENTES ---
+                        Label:
+                            text: "Buscar Clientes"
                             size_hint_y: None
-                            height: self.minimum_height
-                            canvas.before:
-                                Color:
-                                    rgba: 0.92, 0.92, 0.92, 1
-                                Rectangle:
-                                    pos: self.pos
-                                    size: self.size
-                            
-                            Label:
-                                text: "Gestión de Clientes"
-                                color: 0, 0, 0, 1
-                                font_size: '22sp'
-                                bold: True
-                                size_hint_y: None
-                                height: dp(40)
-                            
-                            TextInput:
-                                id: cliente_nombre
-                                hint_text: "Nombre del cliente"
-                                foreground_color: 0, 0, 0, 1
-                                background_color: 1, 1, 1, 1
-                                cursor_color: 0, 0, 0, 1
-                                size_hint_y: None
-                                height: dp(50)
-                                font_size: '16sp'
+                            height: dp(25)
+                            color: 0.1, 0.1, 0.1, 1
+                            bold: True
+                            font_size: '14sp'
 
-                            TextInput:
-                                id: cliente_telefono
-                                hint_text: "Teléfono"
-                                foreground_color: 0, 0, 0, 1
-                                background_color: 1, 1, 1, 1
-                                cursor_color: 0, 0, 0, 1
-                                size_hint_y: None
-                                height: dp(50)
-                                font_size: '16sp'
-
-                            Button:
-                                text: "Guardar Cliente"
-                                size_hint_y: None
-                                height: dp(50)
-                                background_color: 0.3, 0.6, 0.9, 1
-                                color: 1, 1, 1, 1
-                                font_size: '16sp'
-                                bold: True
-                                on_press: root.guardar_cliente(cliente_nombre.text, cliente_telefono.text)
-
-                            Label:
-                                text: "--------------------------------------------------"
-                                color: 0.5, 0.5, 0.5, 1
-                                size_hint_y: None
-                                height: dp(20)
-
-                            Spinner:
-                                id: spinner_editar_cliente
-                                text: "Seleccionar cliente a editar"
-                                values: []
-                                font_size: '16sp'
-                                background_color: 1, 1, 1, 1
-                                color: 0, 0, 0, 1
-                                size_hint_y: None
-                                height: dp(50)
-                                on_text: root.cargar_datos_cliente_editar(self.text)
-
-                            TextInput:
-                                id: cliente_edit_nombre
-                                hint_text: "Nuevo nombre"
-                                foreground_color: 0, 0, 0, 1
-                                background_color: 1, 1, 1, 1
-                                cursor_color: 0, 0, 0, 1
-                                size_hint_y: None
-                                height: dp(50)
-                                font_size: '16sp'
-
-                            TextInput:
-                                id: cliente_edit_telefono
-                                hint_text: "Nuevo teléfono"
-                                foreground_color: 0, 0, 0, 1
-                                background_color: 1, 1, 1, 1
-                                cursor_color: 0, 0, 0, 1
-                                size_hint_y: None
-                                height: dp(50)
-                                font_size: '16sp'
-
-                            Button:
-                                text: "Actualizar Cliente"
-                                size_hint_y: None
-                                height: dp(50)
-                                background_color: 0.1, 0.6, 0.2, 1
-                                color: 1, 1, 1, 1
-                                font_size: '16sp'
-                                bold: True
-                                on_press: root.actualizar_cliente(spinner_editar_cliente.text, cliente_edit_nombre.text, cliente_edit_telefono.text)
-
-                # 3. PRODUCTOS
-                Screen:
-                    name: 'productos'
-                    ScrollView:
-                        BoxLayout:
-                            orientation: 'vertical'
-                            padding: dp(20)
-                            spacing: dp(15)
+                        TextInput:
+                            id: input_cli
+                            hint_text: "Nombre o teléfono..."
                             size_hint_y: None
-                            height: self.minimum_height
-                            canvas.before:
-                                Color:
-                                    rgba: 0.92, 0.92, 0.92, 1
-                                Rectangle:
-                                    pos: self.pos
-                                    size: self.size
-                            
-                            Label:
-                                text: "Gestión de Productos"
-                                color: 0, 0, 0, 1
-                                font_size: '22sp'
-                                bold: True
-                                size_hint_y: None
-                                height: dp(40)
-                            
-                            TextInput:
-                                id: prod_nombre
-                                hint_text: "Nombre del producto"
-                                foreground_color: 0, 0, 0, 1
-                                background_color: 1, 1, 1, 1
-                                cursor_color: 0, 0, 0, 1
-                                size_hint_y: None
-                                height: dp(50)
-                                font_size: '16sp'
+                            height: dp(40)
+                            multiline: False
+                            foreground_color: 0, 0, 0, 1
+                            background_color: 1, 1, 1, 1
+                            cursor_color: 0, 0, 0, 1
+                            on_text: root.buscar_clientes(self.text)
 
-                            TextInput:
-                                id: prod_precio
-                                hint_text: "Precio ($)"
-                                input_filter: 'float'
-                                foreground_color: 0, 0, 0, 1
-                                background_color: 1, 1, 1, 1
-                                cursor_color: 0, 0, 0, 1
+                        RecycleView:
+                            id: rv_clientes
+                            data: root.clientes_data
+                            viewclass: 'BotonLista'
+                            size_hint_y: None
+                            height: dp(120)
+                            RecycleBoxLayout:
+                                default_size: None, dp(40)
+                                default_size_hint: 1, None
                                 size_hint_y: None
-                                height: dp(50)
-                                font_size: '16sp'
+                                height: self.minimum_height
+                                orientation: 'vertical'
 
-                            TextInput:
-                                id: prod_stock
-                                hint_text: "Stock / Cantidad inicial"
-                                input_filter: 'int'
-                                foreground_color: 0, 0, 0, 1
-                                background_color: 1, 1, 1, 1
-                                cursor_color: 0, 0, 0, 1
-                                size_hint_y: None
-                                height: dp(50)
-                                font_size: '16sp'
-
-                            TextInput:
-                                id: prod_codigo
-                                hint_text: "Código de barras (Opcional)"
-                                foreground_color: 0, 0, 0, 1
-                                background_color: 1, 1, 1, 1
-                                cursor_color: 0, 0, 0, 1
-                                size_hint_y: None
-                                height: dp(50)
-                                font_size: '16sp'
-
-                            Button:
-                                text: "Registrar Producto"
-                                size_hint_y: None
-                                height: dp(50)
-                                background_color: 0.1, 0.6, 0.2, 1
-                                color: 1, 1, 1, 1
-                                font_size: '16sp'
-                                bold: True
-                                on_press: root.guardar_producto(prod_nombre.text, prod_precio.text, prod_stock.text, prod_codigo.text)
-
-                            Label:
-                                text: "--------------------------------------------------"
-                                color: 0.5, 0.5, 0.5, 1
-                                size_hint_y: None
-                                height: dp(20)
-
-                            Spinner:
-                                id: spinner_editar_producto
-                                text: "Seleccionar producto a editar"
-                                values: []
-                                font_size: '16sp'
-                                background_color: 1, 1, 1, 1
-                                color: 0, 0, 0, 1
-                                size_hint_y: None
-                                height: dp(50)
-                                on_text: root.cargar_datos_producto_editar(self.text)
-
-                            TextInput:
-                                id: prod_edit_nombre
-                                hint_text: "Nuevo nombre"
-                                foreground_color: 0, 0, 0, 1
-                                background_color: 1, 1, 1, 1
-                                cursor_color: 0, 0, 0, 1
-                                size_hint_y: None
-                                height: dp(50)
-                                font_size: '16sp'
-
-                            TextInput:
-                                id: prod_edit_precio
-                                hint_text: "Nuevo precio ($)"
-                                input_filter: 'float'
-                                foreground_color: 0, 0, 0, 1
-                                background_color: 1, 1, 1, 1
-                                cursor_color: 0, 0, 0, 1
-                                size_hint_y: None
-                                height: dp(50)
-                                font_size: '16sp'
-
-                            TextInput:
-                                id: prod_edit_stock
-                                hint_text: "Nuevo stock"
-                                input_filter: 'int'
-                                foreground_color: 0, 0, 0, 1
-                                background_color: 1, 1, 1, 1
-                                cursor_color: 0, 0, 0, 1
-                                size_hint_y: None
-                                height: dp(50)
-                                font_size: '16sp'
-
-                            TextInput:
-                                id: prod_edit_codigo
-                                hint_text: "Nuevo código"
-                                foreground_color: 0, 0, 0, 1
-                                background_color: 1, 1, 1, 1
-                                cursor_color: 0, 0, 0, 1
-                                size_hint_y: None
-                                height: dp(50)
-                                font_size: '16sp'
-
-                            Button:
-                                text: "Actualizar Producto"
-                                size_hint_y: None
-                                height: dp(50)
-                                background_color: 0.3, 0.6, 0.9, 1
-                                color: 1, 1, 1, 1
-                                font_size: '16sp'
-                                bold: True
-                                on_press: root.actualizar_producto(spinner_editar_producto.text, prod_edit_nombre.text, prod_edit_precio.text, prod_edit_stock.text, prod_edit_codigo.text)
-
-                # 4. INVENTARIOS
-                Screen:
-                    name: 'inventarios'
+            # 2. PEDIDOS Y WHATSAPP
+            Screen:
+                name: 'pedidos'
+                ScrollView:
+                    do_scroll_x: False
+                    do_scroll_y: True
                     BoxLayout:
                         orientation: 'vertical'
                         padding: dp(15)
-                        spacing: dp(10)
+                        spacing: dp(12)
+                        size_hint_y: None
+                        height: self.minimum_height
+                        canvas.before:
+                            Color:
+                                rgba: 0.92, 0.92, 0.92, 1
+                            Rectangle:
+                                pos: self.pos
+                                size: self.size
+
+                        Label:
+                            text: "Registro y Envío de Pedidos"
+                            color: 0, 0, 0, 1
+                            font_size: '18sp'
+                            bold: True
+                            size_hint_y: None
+                            height: dp(30)
+
+                        BoxLayout:
+                            size_hint_y: None
+                            height: dp(45)
+                            spacing: dp(10)
+                            Spinner:
+                                id: spinner_pedido_cliente
+                                text: "Seleccionar cliente registrado..."
+                                values: []
+                                font_size: '13sp'
+                                background_color: 1, 1, 1, 1
+                                color: 0, 0, 0, 1
+                                on_text: root.rellenar_cliente_pedido(self.text)
+                            Button:
+                                text: "Actualizar"
+                                size_hint_x: None
+                                width: dp(90)
+                                background_color: 0.3, 0.6, 0.9, 1
+                                color: 1, 1, 1, 1
+                                bold: True
+                                font_size: '12sp'
+                                on_press: root.cargar_datos_db()
+
+                        TextInput:
+                            id: pedido_nombre_cliente
+                            hint_text: "Nombre del cliente o negocio"
+                            foreground_color: 0, 0, 0, 1
+                            background_color: 1, 1, 1, 1
+                            cursor_color: 0, 0, 0, 1
+                            size_hint_y: None
+                            height: dp(45)
+                            font_size: '14sp'
+
+                        TextInput:
+                            id: pedido_telefono
+                            hint_text: "Teléfono (ej: 52614...)"
+                            input_filter: 'int'
+                            foreground_color: 0, 0, 0, 1
+                            background_color: 1, 1, 1, 1
+                            cursor_color: 0, 0, 0, 1
+                            size_hint_y: None
+                            height: dp(45)
+                            font_size: '14sp'
+
+                        TextInput:
+                            id: pedido_detalle
+                            hint_text: "Detalles del pedido (Productos, cantidades)..."
+                            foreground_color: 0, 0, 0, 1
+                            background_color: 1, 1, 1, 1
+                            cursor_color: 0, 0, 0, 1
+                            size_hint_y: None
+                            height: dp(80)
+                            font_size: '14sp'
+
+                        TextInput:
+                            id: pedido_direccion
+                            hint_text: "Dirección de entrega (Opcional)"
+                            foreground_color: 0, 0, 0, 1
+                            background_color: 1, 1, 1, 1
+                            cursor_color: 0, 0, 0, 1
+                            size_hint_y: None
+                            height: dp(45)
+                            font_size: '14sp'
+
+                        BoxLayout:
+                            size_hint_y: None
+                            height: dp(45)
+                            spacing: dp(10)
+                            Button:
+                                text: "Guardar"
+                                background_color: 0.3, 0.6, 0.9, 1
+                                color: 1, 1, 1, 1
+                                font_size: '14sp'
+                                bold: True
+                                on_press: root.guardar_nuevo_pedido()
+                            Button:
+                                text: "WhatsApp 📱"
+                                background_color: 0.1, 0.6, 0.3, 1
+                                color: 1, 1, 1, 1
+                                font_size: '14sp'
+                                bold: True
+                                on_press: root.enviar_pedido_whatsapp()
+
+                        Label:
+                            text: "Historial de Pedidos Registrados"
+                            color: 0, 0, 0, 1
+                            font_size: '15sp'
+                            bold: True
+                            size_hint_y: None
+                            height: dp(30)
+
+                        BoxLayout:
+                            id: lista_pedidos_layout
+                            orientation: 'vertical'
+                            size_hint_y: None
+                            height: self.minimum_height
+                            spacing: dp(5)
+
+            # 3. CLIENTES
+            Screen:
+                name: 'clientes'
+                ScrollView:
+                    BoxLayout:
+                        orientation: 'vertical'
+                        padding: dp(15)
+                        spacing: dp(12)
+                        size_hint_y: None
+                        height: self.minimum_height
                         canvas.before:
                             Color:
                                 rgba: 0.92, 0.92, 0.92, 1
@@ -856,181 +449,429 @@ KV = '''
                                 pos: self.pos
                                 size: self.size
                         
-                        BoxLayout:
-                            size_hint_y: None
-                            height: dp(40)
-                            spacing: dp(10)
-                            Label:
-                                text: "Control de Inventarios"
-                                color: 0, 0, 0, 1
-                                font_size: '20sp'
-                                bold: True
-                            Button:
-                                text: "Actualizar"
-                                size_hint_x: None
-                                width: dp(100)
-                                background_color: 0.3, 0.6, 0.9, 1
-                                color: 1, 1, 1, 1
-                                bold: True
-                                on_press: root.cargar_inventario_tiempo_real()
-
-                        ScrollView:
-                            BoxLayout:
-                                id: inventario_layout
-                                orientation: 'vertical'
-                                size_hint_y: None
-                                height: self.minimum_height
-                                spacing: dp(5)
-
-                # 5. REPORTE DEL DÍA
-                Screen:
-                    name: 'informes'
-                    BoxLayout:
-                        orientation: 'vertical'
-                        padding: dp(20)
-                        spacing: dp(15)
-                        canvas.before:
-                            Color:
-                                rgba: 0.92, 0.92, 0.92, 1
-                            Rectangle:
-                                pos: self.pos
-                                size: self.size
                         Label:
-                            text: "Generación de Reporte del Día"
+                            text: "Gestión de Clientes"
                             color: 0, 0, 0, 1
-                            font_size: '22sp'
+                            font_size: '20sp'
                             bold: True
                             size_hint_y: None
-                            height: dp(40)
-                        Button:
-                            text: "Generar y Visualizar Reporte de Hoy"
+                            height: dp(35)
+                        
+                        TextInput:
+                            id: cliente_nombre
+                            hint_text: "Nombre del cliente"
+                            foreground_color: 0, 0, 0, 1
+                            background_color: 1, 1, 1, 1
+                            cursor_color: 0, 0, 0, 1
                             size_hint_y: None
-                            height: dp(60)
+                            height: dp(45)
+                            font_size: '15sp'
+
+                        TextInput:
+                            id: cliente_telefono
+                            hint_text: "Teléfono"
+                            foreground_color: 0, 0, 0, 1
+                            background_color: 1, 1, 1, 1
+                            cursor_color: 0, 0, 0, 1
+                            size_hint_y: None
+                            height: dp(45)
+                            font_size: '15sp'
+
+                        Button:
+                            text: "Guardar Cliente"
+                            size_hint_y: None
+                            height: dp(45)
                             background_color: 0.3, 0.6, 0.9, 1
                             color: 1, 1, 1, 1
-                            font_size: '16sp'
+                            font_size: '15sp'
                             bold: True
-                            on_press: root.generar_reporte_completo_dia()
-                        Widget:
+                            on_press: root.guardar_cliente(cliente_nombre.text, cliente_telefono.text)
 
-                # 6. VENTAS DIARIAS (HISTORIAL)
-                Screen:
-                    name: 'ventas_diarias'
+                        Label:
+                            text: "--------------------------------------------------"
+                            color: 0.5, 0.5, 0.5, 1
+                            size_hint_y: None
+                            height: dp(20)
+
+                        Spinner:
+                            id: spinner_editar_cliente
+                            text: "Seleccionar cliente a editar"
+                            values: []
+                            font_size: '14sp'
+                            background_color: 1, 1, 1, 1
+                            color: 0, 0, 0, 1
+                            size_hint_y: None
+                            height: dp(45)
+                            on_text: root.cargar_datos_cliente_editar(self.text)
+
+                        TextInput:
+                            id: cliente_edit_nombre
+                            hint_text: "Nuevo nombre"
+                            foreground_color: 0, 0, 0, 1
+                            background_color: 1, 1, 1, 1
+                            cursor_color: 0, 0, 0, 1
+                            size_hint_y: None
+                            height: dp(45)
+                            font_size: '15sp'
+
+                        TextInput:
+                            id: cliente_edit_telefono
+                            hint_text: "Nuevo teléfono"
+                            foreground_color: 0, 0, 0, 1
+                            background_color: 1, 1, 1, 1
+                            cursor_color: 0, 0, 0, 1
+                            size_hint_y: None
+                            height: dp(45)
+                            font_size: '15sp'
+
+                        Button:
+                            text: "Actualizar Cliente"
+                            size_hint_y: None
+                            height: dp(45)
+                            background_color: 0.1, 0.6, 0.2, 1
+                            color: 1, 1, 1, 1
+                            font_size: '15sp'
+                            bold: True
+                            on_press: root.actualizar_cliente(spinner_editar_cliente.text, cliente_edit_nombre.text, cliente_edit_telefono.text)
+
+            # 4. PRODUCTOS
+            Screen:
+                name: 'productos'
+                ScrollView:
                     BoxLayout:
                         orientation: 'vertical'
                         padding: dp(15)
-                        spacing: dp(10)
+                        spacing: dp(12)
+                        size_hint_y: None
+                        height: self.minimum_height
                         canvas.before:
                             Color:
                                 rgba: 0.92, 0.92, 0.92, 1
                             Rectangle:
                                 pos: self.pos
                                 size: self.size
-                        BoxLayout:
+                        
+                        Label:
+                            text: "Gestión de Productos"
+                            color: 0, 0, 0, 1
+                            font_size: '20sp'
+                            bold: True
                             size_hint_y: None
-                            height: dp(40)
-                            Label:
-                                text: "Historial de Ventas Diarias"
-                                color: 0, 0, 0, 1
-                                font_size: '20sp'
-                                bold: True
-                            Button:
-                                text: "Actualizar"
-                                size_hint_x: None
-                                width: dp(100)
-                                background_color: 0.3, 0.6, 0.9, 1
-                                color: 1, 1, 1, 1
-                                bold: True
-                                on_press: root.cargar_ventas_diarias_historial()
-                        ScrollView:
-                            BoxLayout:
-                                id: ventas_diarias_layout
-                                orientation: 'vertical'
-                                size_hint_y: None
-                                height: self.minimum_height
-                                spacing: dp(5)
+                            height: dp(35)
+                        
+                        TextInput:
+                            id: prod_nombre
+                            hint_text: "Nombre del producto"
+                            foreground_color: 0, 0, 0, 1
+                            background_color: 1, 1, 1, 1
+                            cursor_color: 0, 0, 0, 1
+                            size_hint_y: None
+                            height: dp(45)
+                            font_size: '15sp'
 
-                # 7. PRODUCTOS MÁS VENDIDOS
-                Screen:
-                    name: 'mas_vendidos'
+                        TextInput:
+                            id: prod_precio
+                            hint_text: "Precio ($)"
+                            input_filter: 'float'
+                            foreground_color: 0, 0, 0, 1
+                            background_color: 1, 1, 1, 1
+                            cursor_color: 0, 0, 0, 1
+                            size_hint_y: None
+                            height: dp(45)
+                            font_size: '15sp'
+
+                        TextInput:
+                            id: prod_stock
+                            hint_text: "Stock / Cantidad inicial"
+                            input_filter: 'int'
+                            foreground_color: 0, 0, 0, 1
+                            background_color: 1, 1, 1, 1
+                            cursor_color: 0, 0, 0, 1
+                            size_hint_y: None
+                            height: dp(45)
+                            font_size: '15sp'
+
+                        TextInput:
+                            id: prod_codigo
+                            hint_text: "Código de barras (Opcional)"
+                            foreground_color: 0, 0, 0, 1
+                            background_color: 1, 1, 1, 1
+                            cursor_color: 0, 0, 0, 1
+                            size_hint_y: None
+                            height: dp(45)
+                            font_size: '15sp'
+
+                        Button:
+                            text: "Registrar Producto"
+                            size_hint_y: None
+                            height: dp(45)
+                            background_color: 0.1, 0.6, 0.2, 1
+                            color: 1, 1, 1, 1
+                            font_size: '15sp'
+                            bold: True
+                            on_press: root.guardar_producto(prod_nombre.text, prod_precio.text, prod_stock.text, prod_codigo.text)
+
+                        Label:
+                            text: "--------------------------------------------------"
+                            color: 0.5, 0.5, 0.5, 1
+                            size_hint_y: None
+                            height: dp(20)
+
+                        Spinner:
+                            id: spinner_editar_producto
+                            text: "Seleccionar producto a editar"
+                            values: []
+                            font_size: '14sp'
+                            background_color: 1, 1, 1, 1
+                            color: 0, 0, 0, 1
+                            size_hint_y: None
+                            height: dp(45)
+                            on_text: root.cargar_datos_producto_editar(self.text)
+
+                        TextInput:
+                            id: prod_edit_nombre
+                            hint_text: "Nuevo nombre"
+                            foreground_color: 0, 0, 0, 1
+                            background_color: 1, 1, 1, 1
+                            cursor_color: 0, 0, 0, 1
+                            size_hint_y: None
+                            height: dp(45)
+                            font_size: '15sp'
+
+                        TextInput:
+                            id: prod_edit_precio
+                            hint_text: "Nuevo precio ($)"
+                            input_filter: 'float'
+                            foreground_color: 0, 0, 0, 1
+                            background_color: 1, 1, 1, 1
+                            cursor_color: 0, 0, 0, 1
+                            size_hint_y: None
+                            height: dp(45)
+                            font_size: '15sp'
+
+                        TextInput:
+                            id: prod_edit_stock
+                            hint_text: "Nuevo stock"
+                            input_filter: 'int'
+                            foreground_color: 0, 0, 0, 1
+                            background_color: 1, 1, 1, 1
+                            cursor_color: 0, 0, 0, 1
+                            size_hint_y: None
+                            height: dp(45)
+                            font_size: '15sp'
+
+                        TextInput:
+                            id: prod_edit_codigo
+                            hint_text: "Nuevo código"
+                            foreground_color: 0, 0, 0, 1
+                            background_color: 1, 1, 1, 1
+                            cursor_color: 0, 0, 0, 1
+                            size_hint_y: None
+                            height: dp(45)
+                            font_size: '15sp'
+
+                        Button:
+                            text: "Actualizar Producto"
+                            size_hint_y: None
+                            height: dp(45)
+                            background_color: 0.3, 0.6, 0.9, 1
+                            color: 1, 1, 1, 1
+                            font_size: '15sp'
+                            bold: True
+                            on_press: root.actualizar_producto(spinner_editar_producto.text, prod_edit_nombre.text, prod_edit_precio.text, prod_edit_stock.text, prod_edit_codigo.text)
+
+            # 5. INVENTARIOS
+            Screen:
+                name: 'inventarios'
+                BoxLayout:
+                    orientation: 'vertical'
+                    padding: dp(15)
+                    spacing: dp(10)
+                    canvas.before:
+                        Color:
+                            rgba: 0.92, 0.92, 0.92, 1
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
+                    
+                    BoxLayout:
+                        size_hint_y: None
+                        height: dp(40)
+                        spacing: dp(10)
+                        Label:
+                            text: "Inventarios"
+                            color: 0, 0, 0, 1
+                            font_size: '18sp'
+                            bold: True
+                        Button:
+                            text: "Actualizar"
+                            size_hint_x: None
+                            width: dp(90)
+                            background_color: 0.3, 0.6, 0.9, 1
+                            color: 1, 1, 1, 1
+                            bold: True
+                            on_press: root.cargar_inventario_tiempo_real()
+
+                    ScrollView:
+                        BoxLayout:
+                            id: inventario_layout
+                            orientation: 'vertical'
+                            size_hint_y: None
+                            height: self.minimum_height
+                            spacing: dp(5)
+
+            # 6. REPORTE DEL DÍA
+            Screen:
+                name: 'informes'
+                BoxLayout:
+                    orientation: 'vertical'
+                    padding: dp(20)
+                    spacing: dp(15)
+                    canvas.before:
+                        Color:
+                            rgba: 0.92, 0.92, 0.92, 1
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
+                    Label:
+                        text: "Generación de Reporte del Día"
+                        color: 0, 0, 0, 1
+                        font_size: '20sp'
+                        bold: True
+                        size_hint_y: None
+                        height: dp(40)
+                    Button:
+                        text: "Generar Reporte de Hoy"
+                        size_hint_y: None
+                        height: dp(55)
+                        background_color: 0.3, 0.6, 0.9, 1
+                        color: 1, 1, 1, 1
+                        font_size: '16sp'
+                        bold: True
+                        on_press: root.generar_reporte_completo_dia()
+                    Widget:
+
+            # 7. VENTAS DIARIAS (HISTORIAL)
+            Screen:
+                name: 'ventas_diarias'
+                BoxLayout:
+                    orientation: 'vertical'
+                    padding: dp(15)
+                    spacing: dp(10)
+                    canvas.before:
+                        Color:
+                            rgba: 0.92, 0.92, 0.92, 1
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
+                    BoxLayout:
+                        size_hint_y: None
+                        height: dp(40)
+                        Label:
+                            text: "Ventas Diarias"
+                            color: 0, 0, 0, 1
+                            font_size: '18sp'
+                            bold: True
+                        Button:
+                            text: "Actualizar"
+                            size_hint_x: None
+                            width: dp(90)
+                            background_color: 0.3, 0.6, 0.9, 1
+                            color: 1, 1, 1, 1
+                            bold: True
+                            on_press: root.cargar_ventas_diarias_historial()
+                    ScrollView:
+                        BoxLayout:
+                            id: ventas_diarias_layout
+                            orientation: 'vertical'
+                            size_hint_y: None
+                            height: self.minimum_height
+                            spacing: dp(5)
+
+            # 8. PRODUCTOS MÁS VENDIDOS
+            Screen:
+                name: 'mas_vendidos'
+                BoxLayout:
+                    orientation: 'vertical'
+                    padding: dp(15)
+                    spacing: dp(10)
+                    canvas.before:
+                        Color:
+                            rgba: 0.92, 0.92, 0.92, 1
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
+                    BoxLayout:
+                        size_hint_y: None
+                        height: dp(40)
+                        Label:
+                            text: "Más Vendidos"
+                            color: 0, 0, 0, 1
+                            font_size: '18sp'
+                            bold: True
+                        Button:
+                            text: "Actualizar"
+                            size_hint_x: None
+                            width: dp(90)
+                            background_color: 0.3, 0.6, 0.9, 1
+                            color: 1, 1, 1, 1
+                            bold: True
+                            on_press: root.cargar_productos_mas_vendidos_pantalla()
+                    ScrollView:
+                        BoxLayout:
+                            id: mas_vendidos_layout
+                            orientation: 'vertical'
+                            size_hint_y: None
+                            height: self.minimum_height
+                            spacing: dp(5)
+
+            # 9. REPORTES GUARDADOS
+            Screen:
+                name: 'reportes_guardados'
+                BoxLayout:
+                    orientation: 'vertical'
+                    padding: dp(15)
+                    spacing: dp(10)
+                    canvas.before:
+                        Color:
+                            rgba: 0.92, 0.92, 0.92, 1
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
+                    BoxLayout:
+                        size_hint_y: None
+                        height: dp(40)
+                        Label:
+                            text: "Reportes Guardados"
+                            color: 0, 0, 0, 1
+                            font_size: '18sp'
+                            bold: True
+                        Button:
+                            text: "Actualizar"
+                            size_hint_x: None
+                            width: dp(90)
+                            background_color: 0.3, 0.6, 0.9, 1
+                            color: 1, 1, 1, 1
+                            bold: True
+                            on_press: root.cargar_lista_reportes_guardados()
+                    ScrollView:
+                        BoxLayout:
+                            id: reportes_guardados_layout
+                            orientation: 'vertical'
+                            size_hint_y: None
+                            height: self.minimum_height
+                            spacing: dp(5)
+
+            # 10. GASTOS / COMPRAS
+            Screen:
+                name: 'gastos'
+                ScrollView:
                     BoxLayout:
                         orientation: 'vertical'
                         padding: dp(15)
-                        spacing: dp(10)
-                        canvas.before:
-                            Color:
-                                rgba: 0.92, 0.92, 0.92, 1
-                            Rectangle:
-                                pos: self.pos
-                                size: self.size
-                        BoxLayout:
-                            size_hint_y: None
-                            height: dp(40)
-                            Label:
-                                text: "Ranking de Productos Más Vendidos"
-                                color: 0, 0, 0, 1
-                                font_size: '20sp'
-                                bold: True
-                            Button:
-                                text: "Actualizar"
-                                size_hint_x: None
-                                width: dp(100)
-                                background_color: 0.3, 0.6, 0.9, 1
-                                color: 1, 1, 1, 1
-                                bold: True
-                                on_press: root.cargar_productos_mas_vendidos_pantalla()
-                        ScrollView:
-                            BoxLayout:
-                                id: mas_vendidos_layout
-                                orientation: 'vertical'
-                                size_hint_y: None
-                                height: self.minimum_height
-                                spacing: dp(5)
-
-                # 8. REPORTES GUARDADOS
-                Screen:
-                    name: 'reportes_guardados'
-                    BoxLayout:
-                        orientation: 'vertical'
-                        padding: dp(15)
-                        spacing: dp(10)
-                        canvas.before:
-                            Color:
-                                rgba: 0.92, 0.92, 0.92, 1
-                            Rectangle:
-                                pos: self.pos
-                                size: self.size
-                        BoxLayout:
-                            size_hint_y: None
-                            height: dp(40)
-                            Label:
-                                text: "Historial de Reportes Guardados"
-                                color: 0, 0, 0, 1
-                                font_size: '20sp'
-                                bold: True
-                            Button:
-                                text: "Actualizar"
-                                size_hint_x: None
-                                width: dp(100)
-                                background_color: 0.3, 0.6, 0.9, 1
-                                color: 1, 1, 1, 1
-                                bold: True
-                                on_press: root.cargar_lista_reportes_guardados()
-                        ScrollView:
-                            BoxLayout:
-                                id: reportes_guardados_layout
-                                orientation: 'vertical'
-                                size_hint_y: None
-                                height: self.minimum_height
-                                spacing: dp(5)
-
-                # 9. GASTOS / COMPRAS
-                Screen:
-                    name: 'gastos'
-                    BoxLayout:
-                        orientation: 'vertical'
-                        padding: dp(20)
-                        spacing: dp(15)
+                        spacing: dp(12)
+                        size_hint_y: None
+                        height: self.minimum_height
                         canvas.before:
                             Color:
                                 rgba: 0.92, 0.92, 0.92, 1
@@ -1040,20 +881,20 @@ KV = '''
                         Label:
                             text: "Registro de Compras / Gastos"
                             color: 0, 0, 0, 1
-                            font_size: '20sp'
+                            font_size: '18sp'
                             bold: True
                             size_hint_y: None
-                            height: dp(40)
+                            height: dp(35)
                         
                         Spinner:
                             id: spinner_producto_compra
                             text: "Seleccionar producto a reabastecer (Opcional)"
                             values: []
-                            font_size: '16sp'
+                            font_size: '13sp'
                             background_color: 1, 1, 1, 1
                             color: 0, 0, 0, 1
                             size_hint_y: None
-                            height: dp(50)
+                            height: dp(45)
 
                         TextInput:
                             id: compra_cantidad_prod
@@ -1063,8 +904,8 @@ KV = '''
                             background_color: 1, 1, 1, 1
                             cursor_color: 0, 0, 0, 1
                             size_hint_y: None
-                            height: dp(50)
-                            font_size: '16sp'
+                            height: dp(45)
+                            font_size: '14sp'
 
                         TextInput:
                             id: gasto_desc
@@ -1073,8 +914,8 @@ KV = '''
                             background_color: 1, 1, 1, 1
                             cursor_color: 0, 0, 0, 1
                             size_hint_y: None
-                            height: dp(50)
-                            font_size: '16sp'
+                            height: dp(45)
+                            font_size: '14sp'
 
                         TextInput:
                             id: gasto_monto
@@ -1084,64 +925,223 @@ KV = '''
                             background_color: 1, 1, 1, 1
                             cursor_color: 0, 0, 0, 1
                             size_hint_y: None
-                            height: dp(50)
-                            font_size: '16sp'
+                            height: dp(45)
+                            font_size: '14sp'
 
                         Button:
                             text: "Registrar Compra / Gasto"
                             size_hint_y: None
-                            height: dp(55)
+                            height: dp(45)
                             background_color: 0.8, 0.3, 0.2, 1
                             color: 1, 1, 1, 1
-                            font_size: '16sp'
+                            font_size: '15sp'
                             bold: True
                             on_press: root.guardar_compra_gasto(spinner_producto_compra.text, compra_cantidad_prod.text, gasto_desc.text, gasto_monto.text)
-                        Widget:
 
-                # 10. RECIBOS ANTERIORES
-                Screen:
-                    name: 'recibos_anteriores'
+            # 11. RECIBOS ANTERIORES
+            Screen:
+                name: 'recibos_anteriores'
+                BoxLayout:
+                    orientation: 'vertical'
+                    padding: dp(15)
+                    spacing: dp(10)
+                    canvas.before:
+                        Color:
+                            rgba: 0.92, 0.92, 0.92, 1
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
                     BoxLayout:
-                        orientation: 'vertical'
-                        padding: dp(15)
-                        spacing: dp(10)
-                        canvas.before:
-                            Color:
-                                rgba: 0.92, 0.92, 0.92, 1
-                            Rectangle:
-                                pos: self.pos
-                                size: self.size
+                        size_hint_y: None
+                        height: dp(40)
+                        Label:
+                            text: "Historial de Recibos"
+                            color: 0, 0, 0, 1
+                            font_size: '18sp'
+                            bold: True
+                        Button:
+                            text: "Actualizar"
+                            size_hint_x: None
+                            width: dp(90)
+                            background_color: 0.3, 0.6, 0.9, 1
+                            color: 1, 1, 1, 1
+                            bold: True
+                            on_press: root.cargar_recibos_anteriores()
+                    ScrollView:
                         BoxLayout:
+                            id: recibos_anteriores_layout
+                            orientation: 'vertical'
                             size_hint_y: None
-                            height: dp(40)
-                            Label:
-                                text: "Historial de Recibos"
-                                color: 0, 0, 0, 1
-                                font_size: '20sp'
-                                bold: True
-                            Button:
-                                text: "Actualizar"
-                                size_hint_x: None
-                                width: dp(100)
-                                background_color: 0.3, 0.6, 0.9, 1
-                                color: 1, 1, 1, 1
-                                bold: True
-                                on_press: root.cargar_recibos_anteriores()
-                        ScrollView:
-                            BoxLayout:
-                                id: recibos_anteriores_layout
-                                orientation: 'vertical'
-                                size_hint_y: None
-                                height: self.minimum_height
-                                spacing: dp(5)
+                            height: self.minimum_height
+                            spacing: dp(5)
+
+    # --- PANEL LATERAL OVERLAY (Menú Desplegable Móvil) ---
+    BoxLayout:
+        id: nav_panel
+        orientation: 'vertical'
+        size_hint: None, 1
+        width: 0
+        x: self.parent.x if self.parent else 0
+        y: self.parent.y if self.parent else 0
+        canvas.before:
+            Color:
+                rgba: 0.96, 0.96, 0.96, 1
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        
+        BoxLayout:
+            size_hint_y: None
+            height: dp(90)
+            padding: 10
+            canvas.before:
+                Color:
+                    rgba: 0.15, 0.45, 0.75, 1
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+            Label:
+                text: "SISTEMA POS RUTA"
+                color: 1, 1, 1, 1
+                font_size: '16sp'
+                bold: True
+
+        ScrollView:
+            BoxLayout:
+                orientation: 'vertical'
+                size_hint_y: None
+                height: self.minimum_height
+                spacing: dp(2)
+                padding: [0, 5, 0, 5]
+
+                Button:
+                    text: "   Impresión de Recibos"
+                    halign: 'left'
+                    valign: 'middle'
+                    size_hint_y: None
+                    height: dp(45)
+                    background_color: 0.3, 0.6, 0.9, 1
+                    color: 1, 1, 1, 1
+                    font_size: '14sp'
+                    on_press: root.cambiar_pantalla('recibos')
+
+                Button:
+                    text: "   Pedidos y WhatsApp"
+                    halign: 'left'
+                    valign: 'middle'
+                    size_hint_y: None
+                    height: dp(45)
+                    background_color: 0.3, 0.6, 0.9, 1
+                    color: 1, 1, 1, 1
+                    font_size: '14sp'
+                    on_press: root.cambiar_pantalla('pedidos')
+
+                Button:
+                    text: "   Clientes"
+                    halign: 'left'
+                    valign: 'middle'
+                    size_hint_y: None
+                    height: dp(45)
+                    background_color: 0.3, 0.6, 0.9, 1
+                    color: 1, 1, 1, 1
+                    font_size: '14sp'
+                    on_press: root.cambiar_pantalla('clientes')
+
+                Button:
+                    text: "   Productos"
+                    halign: 'left'
+                    valign: 'middle'
+                    size_hint_y: None
+                    height: dp(45)
+                    background_color: 0.3, 0.6, 0.9, 1
+                    color: 1, 1, 1, 1
+                    font_size: '14sp'
+                    on_press: root.cambiar_pantalla('productos')
+
+                Button:
+                    text: "   Inventarios"
+                    halign: 'left'
+                    valign: 'middle'
+                    size_hint_y: None
+                    height: dp(45)
+                    background_color: 0.3, 0.6, 0.9, 1
+                    color: 1, 1, 1, 1
+                    font_size: '14sp'
+                    on_press: root.cambiar_pantalla('inventarios')
+
+                Button:
+                    text: "   Reporte del Día"
+                    halign: 'left'
+                    valign: 'middle'
+                    size_hint_y: None
+                    height: dp(45)
+                    background_color: 0.3, 0.6, 0.9, 1
+                    color: 1, 1, 1, 1
+                    font_size: '14sp'
+                    on_press: root.cambiar_pantalla('informes')
+
+                Button:
+                    text: "   Ventas Diarias (Historial)"
+                    halign: 'left'
+                    valign: 'middle'
+                    size_hint_y: None
+                    height: dp(45)
+                    background_color: 0.3, 0.6, 0.9, 1
+                    color: 1, 1, 1, 1
+                    font_size: '14sp'
+                    on_press: root.cambiar_pantalla('ventas_diarias')
+
+                Button:
+                    text: "   Productos Más Vendidos"
+                    halign: 'left'
+                    valign: 'middle'
+                    size_hint_y: None
+                    height: dp(45)
+                    background_color: 0.3, 0.6, 0.9, 1
+                    color: 1, 1, 1, 1
+                    font_size: '14sp'
+                    on_press: root.cambiar_pantalla('mas_vendidos')
+
+                Button:
+                    text: "   Reportes Guardados"
+                    halign: 'left'
+                    valign: 'middle'
+                    size_hint_y: None
+                    height: dp(45)
+                    background_color: 0.3, 0.6, 0.9, 1
+                    color: 1, 1, 1, 1
+                    font_size: '14sp'
+                    on_press: root.cambiar_pantalla('reportes_guardados')
+
+                Button:
+                    text: "   Gastos / Compras"
+                    halign: 'left'
+                    valign: 'middle'
+                    size_hint_y: None
+                    height: dp(45)
+                    background_color: 0.3, 0.6, 0.9, 1
+                    color: 1, 1, 1, 1
+                    font_size: '14sp'
+                    on_press: root.cambiar_pantalla('gastos')
+
+                Button:
+                    text: "   Recibos anteriores"
+                    halign: 'left'
+                    valign: 'middle'
+                    size_hint_y: None
+                    height: dp(45)
+                    background_color: 0.3, 0.6, 0.9, 1
+                    color: 1, 1, 1, 1
+                    font_size: '14sp'
+                    on_press: root.cambiar_pantalla('recibos_anteriores')
 '''
 
 class BotonLista(Button):
     pass
 
 class MenuDrawer(FloatLayout):
-    titulo_pantalla = StringProperty("Impresión de Tickets")
-    menu_abierto = True
+    titulo_pantalla = StringProperty("Impresión de Recibos")
+    menu_abierto = False
     
     productos_data = ListProperty([])
     clientes_data = ListProperty([])
@@ -1263,7 +1263,6 @@ class MenuDrawer(FloatLayout):
         conexion.commit()
         conexion.close()
 
-        # Limpiar campos
         self.ids.pedido_nombre_cliente.text = ""
         self.ids.pedido_telefono.text = ""
         self.ids.pedido_detalle.text = ""
@@ -1281,17 +1280,17 @@ class MenuDrawer(FloatLayout):
         conexion.close()
 
         if not pedidos:
-            lbl = Label(text="No hay pedidos registrados.", color=(0.3, 0.3, 0.3, 1), font_size='15sp', size_hint_y=None, height=dp(40))
+            lbl = Label(text="No hay pedidos registrados.", color=(0.3, 0.3, 0.3, 1), font_size='14sp', size_hint_y=None, height=dp(40))
             layout.add_widget(lbl)
         else:
             for p_id, cli, tel, det, dir_, estado, fecha in pedidos:
-                row = BoxLayout(size_hint_y=None, height=dp(55), spacing=dp(5))
+                row = BoxLayout(size_hint_y=None, height=dp(50), spacing=dp(5))
                 
-                texto_btn = f"#{p_id} | {cli} | {estado} | {fecha[:10]}"
-                btn_det = Button(text=texto_btn, size_hint_x=0.7, background_color=(0.3, 0.6, 0.9, 1), color=(1,1,1,1), bold=True, font_size='13sp')
+                texto_btn = f"#{p_id} | {cli} | {estado}"
+                btn_det = Button(text=texto_btn, size_hint_x=0.7, background_color=(0.3, 0.6, 0.9, 1), color=(1,1,1,1), bold=True, font_size='12sp')
                 btn_det.bind(on_press=lambda instance, pid=p_id: self.ver_detalle_pedido(pid))
 
-                btn_wsp = Button(text="📱 WSP", size_hint_x=0.3, background_color=(0.1, 0.6, 0.3, 1), color=(1,1,1,1), bold=True, font_size='13sp')
+                btn_wsp = Button(text="📱 WSP", size_hint_x=0.3, background_color=(0.1, 0.6, 0.3, 1), color=(1,1,1,1), bold=True, font_size='12sp')
                 btn_wsp.bind(on_press=lambda instance, t=tel, c=cli, d=det, dr=dir_: self.enviar_whatsapp_directo(t, c, d, dr))
 
                 row.add_widget(btn_det)
@@ -1347,19 +1346,18 @@ class MenuDrawer(FloatLayout):
             content.bind(pos=lambda s, pos: setattr(self.bg_rect_ped, 'pos', pos),
                          size=lambda s, sz: setattr(self.bg_rect_ped, 'size', sz))
 
-            # Contenedor desplazable para el detalle del pedido
             scroll = ScrollView(size_hint=(1, 1))
-            lbl = Label(text=texto, color=(0,0,0,1), font_size='15sp', halign='left', valign='top', size_hint_y=None)
+            lbl = Label(text=texto, color=(0,0,0,1), font_size='14sp', halign='left', valign='top', size_hint_y=None)
             lbl.bind(width=lambda s, w: setattr(s, 'text_size', (w, None)))
             lbl.bind(texture_size=lambda s, t: setattr(s, 'height', t[1]))
             scroll.add_widget(lbl)
             content.add_widget(scroll)
 
-            btn_layout = BoxLayout(size_hint_y=None, height=dp(50), spacing=10)
+            btn_layout = BoxLayout(size_hint_y=None, height=dp(45), spacing=10)
             btn_wsp = Button(text="Enviar WSP", background_color=(0.1, 0.6, 0.3, 1), color=(1,1,1,1), bold=True)
             btn_cerrar = Button(text="Cerrar", background_color=(0.3, 0.6, 0.9, 1), color=(1,1,1,1), bold=True)
 
-            popup = Popup(title=f"Detalle del Pedido #{pedido_id}", content=content, size_hint=(0.85, 0.7))
+            popup = Popup(title=f"Detalle Pedido #{pedido_id}", content=content, size_hint=(0.9, 0.75))
 
             btn_wsp.bind(on_press=lambda instance: self.enviar_whatsapp_directo(tel, cli, det, dir_))
             btn_cerrar.bind(on_press=popup.dismiss)
@@ -1437,22 +1435,22 @@ class MenuDrawer(FloatLayout):
         conexion.close()
 
         if not productos:
-            lbl = Label(text="No hay productos registrados.", color=(0.3, 0.3, 0.3, 1), font_size='16sp', size_hint_y=None, height=dp(40))
+            lbl = Label(text="No hay productos registrados.", color=(0.3, 0.3, 0.3, 1), font_size='15sp', size_hint_y=None, height=dp(40))
             layout.add_widget(lbl)
         else:
-            header_layout = BoxLayout(size_hint_y=None, height=dp(40))
-            header_layout.add_widget(Label(text="[b]Producto[/b]", markup=True, color=(0.1, 0.1, 0.1, 1), font_size='14sp'))
-            header_layout.add_widget(Label(text="[b]Precio[/b]", markup=True, color=(0.1, 0.1, 0.1, 1), font_size='14sp'))
-            header_layout.add_widget(Label(text="[b]Stock[/b]", markup=True, color=(0.1, 0.1, 0.1, 1), font_size='14sp'))
-            header_layout.add_widget(Label(text="[b]Código[/b]", markup=True, color=(0.1, 0.1, 0.1, 1), font_size='14sp'))
+            header_layout = BoxLayout(size_hint_y=None, height=dp(35))
+            header_layout.add_widget(Label(text="[b]Producto[/b]", markup=True, color=(0.1, 0.1, 0.1, 1), font_size='13sp'))
+            header_layout.add_widget(Label(text="[b]Precio[/b]", markup=True, color=(0.1, 0.1, 0.1, 1), font_size='13sp'))
+            header_layout.add_widget(Label(text="[b]Stock[/b]", markup=True, color=(0.1, 0.1, 0.1, 1), font_size='13sp'))
+            header_layout.add_widget(Label(text="[b]Código[/b]", markup=True, color=(0.1, 0.1, 0.1, 1), font_size='13sp'))
             layout.add_widget(header_layout)
 
             for prod, precio, stock, codigo in productos:
-                row = BoxLayout(size_hint_y=None, height=dp(45))
-                row.add_widget(Label(text=str(prod), color=(0, 0, 0, 1), font_size='13sp'))
-                row.add_widget(Label(text=f"${precio:.2f}", color=(0, 0, 0, 1), font_size='13sp'))
-                row.add_widget(Label(text=str(stock), color=(0, 0, 0, 1), font_size='13sp', bold=True))
-                row.add_widget(Label(text=str(codigo if codigo else ""), color=(0, 0, 0, 1), font_size='13sp'))
+                row = BoxLayout(size_hint_y=None, height=dp(40))
+                row.add_widget(Label(text=str(prod), color=(0, 0, 0, 1), font_size='12sp'))
+                row.add_widget(Label(text=f"${precio:.2f}", color=(0, 0, 0, 1), font_size='12sp'))
+                row.add_widget(Label(text=str(stock), color=(0, 0, 0, 1), font_size='12sp', bold=True))
+                row.add_widget(Label(text=str(codigo if codigo else ""), color=(0, 0, 0, 1), font_size='12sp'))
                 layout.add_widget(row)
 
     def cargar_ventas_diarias_historial(self):
@@ -1471,20 +1469,52 @@ class MenuDrawer(FloatLayout):
         conexion.close()
 
         if not resultados:
-            lbl = Label(text="Aún no hay registros de ventas diarias.", color=(0.3, 0.3, 0.3, 1), font_size='16sp', size_hint_y=None, height=dp(40))
+            lbl = Label(text="Aún no hay registros de ventas diarias.", color=(0.3, 0.3, 0.3, 1), font_size='15sp', size_hint_y=None, height=dp(40))
             layout.add_widget(lbl)
         else:
-            header_layout = BoxLayout(size_hint_y=None, height=dp(40))
-            header_layout.add_widget(Label(text="[b]Fecha[/b]", markup=True, color=(0.1, 0.1, 0.1, 1), font_size='15sp'))
-            header_layout.add_widget(Label(text="[b]Tickets[/b]", markup=True, color=(0.1, 0.1, 0.1, 1), font_size='15sp'))
-            header_layout.add_widget(Label(text="[b]Total[/b]", markup=True, color=(0.1, 0.1, 0.1, 1), font_size='15sp'))
+            header_layout = BoxLayout(size_hint_y=None, height=dp(35))
+            header_layout.add_widget(Label(text="[b]Fecha[/b]", markup=True, color=(0.1, 0.1, 0.1, 1), font_size='13sp'))
+            header_layout.add_widget(Label(text="[b]Tickets[/b]", markup=True, color=(0.1, 0.1, 0.1, 1), font_size='13sp'))
+            header_layout.add_widget(Label(text="[b]Total[/b]", markup=True, color=(0.1, 0.1, 0.1, 1), font_size='13sp'))
             layout.add_widget(header_layout)
 
             for dia, num_tickets, suma_total in resultados:
-                row = BoxLayout(size_hint_y=None, height=dp(45))
-                row.add_widget(Label(text=str(dia), color=(0, 0, 0, 1), font_size='14sp', bold=True))
-                row.add_widget(Label(text=str(num_tickets), color=(0, 0, 0, 1), font_size='14sp'))
-                row.add_widget(Label(text=f"${suma_total:.2f}", color=(0, 0, 0, 1), font_size='14sp', bold=True))
+                row = BoxLayout(size_hint_y=None, height=dp(40))
+                row.add_widget(Label(text=str(dia), color=(0, 0, 0, 1), font_size='12sp', bold=True))
+                row.add_widget(Label(text=str(num_tickets), color=(0, 0, 0, 1), font_size='12sp'))
+                row.add_widget(Label(text=f"${suma_total:.2f}", color=(0, 0, 0, 1), font_size='12sp', bold=True))
+                layout.add_widget(row)
+
+    def cargar_productos_mas_vendidos_pantalla(self):
+        layout = self.ids.mas_vendidos_layout
+        layout.clear_widgets()
+
+        conexion = sqlite3.connect("sistemapos.db")
+        cursor = conexion.cursor()
+        cursor.execute("""
+            SELECT producto, SUM(cantidad) as total_cant, SUM(subtotal) as total_dinero 
+            FROM detalle_recibos 
+            GROUP BY producto 
+            ORDER BY total_cant DESC
+        """)
+        resultados = cursor.fetchall()
+        conexion.close()
+
+        if not resultados:
+            lbl = Label(text="Aún no hay registros de ventas.", color=(0.3, 0.3, 0.3, 1), font_size='15sp', size_hint_y=None, height=dp(40))
+            layout.add_widget(lbl)
+        else:
+            header_layout = BoxLayout(size_hint_y=None, height=dp(35))
+            header_layout.add_widget(Label(text="[b]Producto[/b]", markup=True, color=(0.1, 0.1, 0.1, 1), font_size='13sp'))
+            header_layout.add_widget(Label(text="[b]Cant.[/b]", markup=True, color=(0.1, 0.1, 0.1, 1), font_size='13sp'))
+            header_layout.add_widget(Label(text="[b]Total[/b]", markup=True, color=(0.1, 0.1, 0.1, 1), font_size='13sp'))
+            layout.add_widget(header_layout)
+
+            for prod, cant, dinero in resultados:
+                row = BoxLayout(size_hint_y=None, height=dp(40))
+                row.add_widget(Label(text=str(prod), color=(0, 0, 0, 1), font_size='12sp'))
+                row.add_widget(Label(text=str(cant), color=(0, 0, 0, 1), font_size='12sp', bold=True))
+                row.add_widget(Label(text=f"${dinero:.2f}", color=(0, 0, 0, 1), font_size='12sp'))
                 layout.add_widget(row)
 
     def guardar_cliente(self, nombre, telefono):
@@ -1588,21 +1618,21 @@ class MenuDrawer(FloatLayout):
         
         total_general = 0.0
         if not self.carrito:
-            lbl = Label(text="Carrito vacío", color=(0.3, 0.3, 0.3, 1), font_size='14sp', size_hint_y=None, height=dp(40))
+            lbl = Label(text="Carrito vacío", color=(0.3, 0.3, 0.3, 1), font_size='14sp', size_hint_y=None, height=dp(35))
             layout.add_widget(lbl)
         else:
             for item in self.carrito:
                 total_general += item['subtotal']
                 
-                row = BoxLayout(size_hint_y=None, height=dp(40), spacing=dp(5))
-                texto_item = f"{item['cantidad']}x {item['nombre']} (${item['precio']}/u) - ${item['subtotal']:.2f}"
-                lbl = Label(text=texto_item, color=(0, 0, 0, 1), font_size='13sp', size_hint_x=0.6, halign='left', valign='middle')
+                row = BoxLayout(size_hint_y=None, height=dp(35), spacing=dp(5))
+                texto_item = f"{item['cantidad']}x {item['nombre']} (${item['precio']}) - ${item['subtotal']:.2f}"
+                lbl = Label(text=texto_item, color=(0, 0, 0, 1), font_size='12sp', size_hint_x=0.6, halign='left', valign='middle')
                 lbl.bind(size=lbl.setter('text_size'))
                 
-                btn_editar = Button(text="Editar $", size_hint_x=0.2, background_color=(0.3, 0.6, 0.9, 1), color=(1,1,1,1), font_size='11sp', bold=True)
+                btn_editar = Button(text="Editar $", size_hint_x=0.2, background_color=(0.3, 0.6, 0.9, 1), color=(1,1,1,1), font_size='10sp', bold=True)
                 btn_editar.bind(on_press=lambda instance, prod_name=item['nombre']: self.abrir_popup_editar_precio(prod_name))
                 
-                btn_eliminar = Button(text="X", size_hint_x=0.2, background_color=(0.8, 0.2, 0.2, 1), color=(1,1,1,1), font_size='12sp', bold=True)
+                btn_eliminar = Button(text="X", size_hint_x=0.2, background_color=(0.8, 0.2, 0.2, 1), color=(1,1,1,1), font_size='11sp', bold=True)
                 btn_eliminar.bind(on_press=lambda instance, prod_name=item['nombre']: self.abrir_popup_eliminar(prod_name))
                 
                 row.add_widget(lbl)
@@ -1620,7 +1650,7 @@ class MenuDrawer(FloatLayout):
 
         content = BoxLayout(orientation='vertical', padding=15, spacing=10)
         content.add_widget(Label(text=f"Editar precio unitario para:\n{producto_nombre}", color=(0,0,0,1), font_size='14sp', halign='center'))
-        content.add_widget(Label(text=f"Precio actual en ticket: ${item_actual['precio']:.2f}", color=(0.3,0.3,0.3,1), font_size='13sp'))
+        content.add_widget(Label(text=f"Precio actual: ${item_actual['precio']:.2f}", color=(0.3,0.3,0.3,1), font_size='13sp'))
 
         txt_nuevo_precio = TextInput(hint_text="Nuevo precio unitario", input_filter='float', multiline=False, font_size='16sp', size_hint_y=None, height=dp(45))
         content.add_widget(txt_nuevo_precio)
@@ -1629,7 +1659,7 @@ class MenuDrawer(FloatLayout):
         btn_guardar = Button(text="Guardar", background_color=(0.1, 0.6, 0.2, 1), color=(1,1,1,1), bold=True)
         btn_cancelar = Button(text="Cancelar", background_color=(0.3, 0.6, 0.9, 1), color=(1,1,1,1), bold=True)
 
-        popup = Popup(title="Editar Precio (Solo Ticket)", content=content, size_hint=(0.8, 0.45))
+        popup = Popup(title="Editar Precio", content=content, size_hint=(0.85, 0.45))
 
         def guardar_nuevo_precio(instance):
             try:
@@ -1664,7 +1694,7 @@ class MenuDrawer(FloatLayout):
 
         content = BoxLayout(orientation='vertical', padding=15, spacing=10)
         content.add_widget(Label(text=f"¿Cuántas unidades de\n'{producto_nombre}' deseas eliminar?", color=(0,0,0,1), font_size='14sp', halign='center'))
-        content.add_widget(Label(text=f"Cantidad actual en carrito: {item_actual['cantidad']}", color=(0.3,0.3,0.3,1), font_size='13sp'))
+        content.add_widget(Label(text=f"Cantidad actual: {item_actual['cantidad']}", color=(0.3,0.3,0.3,1), font_size='13sp'))
 
         txt_cantidad = TextInput(text="0", input_filter='int', multiline=False, font_size='18sp', size_hint_y=None, height=dp(45))
         content.add_widget(txt_cantidad)
@@ -1673,7 +1703,7 @@ class MenuDrawer(FloatLayout):
         btn_aceptar = Button(text="Eliminar", background_color=(0.8, 0.2, 0.2, 1), color=(1,1,1,1), bold=True)
         btn_cancelar = Button(text="Cancelar", background_color=(0.3, 0.6, 0.9, 1), color=(1,1,1,1), bold=True)
 
-        popup = Popup(title="Eliminar del Carrito", content=content, size_hint=(0.8, 0.45))
+        popup = Popup(title="Eliminar del Carrito", content=content, size_hint=(0.85, 0.45))
 
         def procesar_eliminacion(instance):
             try:
@@ -1744,18 +1774,18 @@ class MenuDrawer(FloatLayout):
         conexion.close()
 
         if not recibos:
-            lbl = Label(text="No hay recibos registrados aún.", color=(0.3, 0.3, 0.3, 1), font_size='16sp', size_hint_y=None, height=dp(40))
+            lbl = Label(text="No hay recibos registrados aún.", color=(0.3, 0.3, 0.3, 1), font_size='15sp', size_hint_y=None, height=dp(40))
             layout.add_widget(lbl)
         else:
             for rec_id, cliente, total, fecha in recibos:
                 btn = Button(
-                    text=f"Ticket #{rec_id} | Cliente: {cliente} | Total: ${total:.2f} | {fecha}",
+                    text=f"Ticket #{rec_id} | {cliente} | ${total:.2f}",
                     size_hint_y=None,
-                    height=dp(50),
+                    height=dp(45),
                     background_color=(0.3, 0.6, 0.9, 1),
                     color=(1, 1, 1, 1),
                     bold=True,
-                    font_size='14sp'
+                    font_size='13sp'
                 )
                 btn.bind(on_press=lambda instance, rid=rec_id: self.ver_detalle_recibo_anterior(rid))
                 layout.add_widget(btn)
@@ -1793,17 +1823,17 @@ class MenuDrawer(FloatLayout):
                          size=lambda s, sz: setattr(self.bg_rect_recibo, 'size', sz))
 
             scroll = ScrollView()
-            lbl = Label(text=texto_ticket, color=(0,0,0,1), size_hint_y=None, font_size='14sp', halign='left', valign='top')
+            lbl = Label(text=texto_ticket, color=(0,0,0,1), size_hint_y=None, font_size='13sp', halign='left', valign='top')
             lbl.bind(width=lambda s, w: setattr(s, 'text_size', (int(w), None)))
             lbl.bind(texture_size=lambda s, t: setattr(s, 'height', t[1]))
             scroll.add_widget(lbl)
             content.add_widget(scroll)
 
-            btn_layout = BoxLayout(size_hint_y=None, height=dp(50), spacing=10)
-            btn_imprimir = Button(text="Reimprimir Ticket", background_color=(0.1, 0.6, 0.2, 1), color=(1,1,1,1), bold=True)
+            btn_layout = BoxLayout(size_hint_y=None, height=dp(45), spacing=10)
+            btn_imprimir = Button(text="Reimprimir", background_color=(0.1, 0.6, 0.2, 1), color=(1,1,1,1), bold=True)
             btn_cerrar = Button(text="Cerrar", background_color=(0.3, 0.6, 0.9, 1), color=(1,1,1,1), bold=True)
             
-            popup = Popup(title=f"Detalle Ticket #{recibo_id}", content=content, size_hint=(0.9, 0.9))
+            popup = Popup(title=f"Detalle Ticket #{recibo_id}", content=content, size_hint=(0.9, 0.85))
             btn_imprimir.bind(on_press=lambda instance: self.imprimir_texto_directo(texto_ticket))
             btn_cerrar.bind(on_press=popup.dismiss)
             
@@ -1855,18 +1885,18 @@ class MenuDrawer(FloatLayout):
                      size=lambda s, sz: setattr(self.bg_rect_reporte, 'size', sz))
 
         scroll = ScrollView()
-        lbl = Label(text=texto_reporte, color=(0,0,0,1), size_hint_y=None, font_size='14sp', halign='left', valign='top')
+        lbl = Label(text=texto_reporte, color=(0,0,0,1), size_hint_y=None, font_size='13sp', halign='left', valign='top')
         lbl.bind(width=lambda s, w: setattr(s, 'text_size', (int(w), None)))
         lbl.bind(texture_size=lambda s, t: setattr(s, 'height', t[1]))
         scroll.add_widget(lbl)
         content.add_widget(scroll)
 
-        btn_layout = BoxLayout(size_hint_y=None, height=dp(50), spacing=10)
-        btn_imprimir = Button(text="Imprimir", background_color=(0.1, 0.6, 0.2, 1), color=(1,1,1,1), bold=True)
-        btn_guardar = Button(text="Guardar Reporte", background_color=(0.3, 0.6, 0.9, 1), color=(1,1,1,1), bold=True)
-        btn_cerrar = Button(text="Cerrar", background_color=(0.3, 0.6, 0.9, 1), color=(1,1,1,1), bold=True)
+        btn_layout = BoxLayout(size_hint_y=None, height=dp(45), spacing=5)
+        btn_imprimir = Button(text="Imprimir", background_color=(0.1, 0.6, 0.2, 1), color=(1,1,1,1), bold=True, font_size='12sp')
+        btn_guardar = Button(text="Guardar", background_color=(0.3, 0.6, 0.9, 1), color=(1,1,1,1), bold=True, font_size='12sp')
+        btn_cerrar = Button(text="Cerrar", background_color=(0.3, 0.6, 0.9, 1), color=(1,1,1,1), bold=True, font_size='12sp')
         
-        popup = Popup(title=f"Reporte Diario - {fecha_hoy}", content=content, size_hint=(0.9, 0.9))
+        popup = Popup(title=f"Reporte Diario - {fecha_hoy}", content=content, size_hint=(0.9, 0.85))
         
         btn_imprimir.bind(on_press=lambda instance: self.imprimir_texto_directo(texto_reporte))
         btn_guardar.bind(on_press=lambda instance: (self.guardar_reporte_en_db(fecha_hoy, texto_reporte), popup.dismiss()))
@@ -1897,17 +1927,18 @@ class MenuDrawer(FloatLayout):
         conexion.close()
 
         if not reportes:
-            lbl = Label(text="No hay reportes guardados.", color=(0.3, 0.3, 0.3, 1), font_size='16sp', size_hint_y=None, height=dp(40))
+            lbl = Label(text="No hay reportes guardados.", color=(0.3, 0.3, 0.3, 1), font_size='15sp', size_hint_y=None, height=dp(40))
             layout.add_widget(lbl)
         else:
             for rep_id, fecha_rep, fecha_creacion in reportes:
                 btn = Button(
-                    text=f"Reporte del {fecha_rep} (Guardado: {fecha_creacion})",
+                    text=f"Reporte {fecha_rep}",
                     size_hint_y=None,
-                    height=dp(50),
+                    height=dp(45),
                     background_color=(0.3, 0.6, 0.9, 1),
                     color=(1, 1, 1, 1),
-                    bold=True
+                    bold=True,
+                    font_size='13sp'
                 )
                 btn.bind(on_press=lambda instance, rid=rep_id: self.ver_detalle_reporte_guardado(rid))
                 layout.add_widget(btn)
@@ -1930,17 +1961,17 @@ class MenuDrawer(FloatLayout):
                          size=lambda s, sz: setattr(self.bg_rect_guardado, 'size', sz))
 
             scroll = ScrollView()
-            lbl = Label(text=contenido, color=(0,0,0,1), size_hint_y=None, font_size='14sp', halign='left', valign='top')
+            lbl = Label(text=contenido, color=(0,0,0,1), size_hint_y=None, font_size='13sp', halign='left', valign='top')
             lbl.bind(width=lambda s, w: setattr(s, 'text_size', (int(w), None)))
             lbl.bind(texture_size=lambda s, t: setattr(s, 'height', t[1]))
             scroll.add_widget(lbl)
             content.add_widget(scroll)
 
-            btn_layout = BoxLayout(size_hint_y=None, height=dp(50), spacing=10)
+            btn_layout = BoxLayout(size_hint_y=None, height=dp(45), spacing=10)
             btn_imprimir = Button(text="Imprimir", background_color=(0.1, 0.6, 0.2, 1), color=(1,1,1,1), bold=True)
             btn_cerrar = Button(text="Cerrar", background_color=(0.3, 0.6, 0.9, 1), color=(1,1,1,1), bold=True)
             
-            popup = Popup(title=f"Reporte Guardado - {fecha_rep}", content=content, size_hint=(0.9, 0.9))
+            popup = Popup(title=f"Reporte Guardado - {fecha_rep}", content=content, size_hint=(0.9, 0.85))
             btn_imprimir.bind(on_press=lambda instance: self.imprimir_texto_directo(contenido))
             btn_cerrar.bind(on_press=popup.dismiss)
             
@@ -1948,38 +1979,6 @@ class MenuDrawer(FloatLayout):
             btn_layout.add_widget(btn_cerrar)
             content.add_widget(btn_layout)
             popup.open()
-
-    def cargar_productos_mas_vendidos_pantalla(self):
-        layout = self.ids.mas_vendidos_layout
-        layout.clear_widgets()
-
-        conexion = sqlite3.connect("sistemapos.db")
-        cursor = conexion.cursor()
-        cursor.execute("""
-            SELECT producto, SUM(cantidad) as total_cant, SUM(subtotal) as total_dinero 
-            FROM detalle_recibos 
-            GROUP BY producto 
-            ORDER BY total_cant DESC
-        """)
-        resultados = cursor.fetchall()
-        conexion.close()
-
-        if not resultados:
-            lbl = Label(text="Aún no hay registros de ventas.", color=(0.3, 0.3, 0.3, 1), font_size='16sp', size_hint_y=None, height=dp(40))
-            layout.add_widget(lbl)
-        else:
-            header_layout = BoxLayout(size_hint_y=None, height=dp(40))
-            header_layout.add_widget(Label(text="[b]Producto[/b]", markup=True, color=(0.1, 0.1, 0.1, 1), font_size='15sp'))
-            header_layout.add_widget(Label(text="[b]Cant.[/b]", markup=True, color=(0.1, 0.1, 0.1, 1), font_size='15sp'))
-            header_layout.add_widget(Label(text="[b]Total Ingresos[/b]", markup=True, color=(0.1, 0.1, 0.1, 1), font_size='15sp'))
-            layout.add_widget(header_layout)
-
-            for prod, cant, dinero in resultados:
-                row = BoxLayout(size_hint_y=None, height=dp(45))
-                row.add_widget(Label(text=str(prod), color=(0, 0, 0, 1), font_size='14sp'))
-                row.add_widget(Label(text=str(cant), color=(0, 0, 0, 1), font_size='14sp', bold=True))
-                row.add_widget(Label(text=f"${dinero:.2f}", color=(0, 0, 0, 1), font_size='14sp'))
-                layout.add_widget(row)
 
     def imprimir_texto_directo(self, texto):
         try:
@@ -2019,10 +2018,14 @@ class MenuDrawer(FloatLayout):
             nav.width = 0
             self.menu_abierto = False
         else:
-            nav.width = dp(260)
+            nav.width = dp(240)
             self.menu_abierto = True
 
     def cambiar_pantalla(self, nombre_pantalla):
+        # Oculta el menú de hamburguesa automáticamente al presionar cualquier módulo
+        if self.menu_abierto:
+            self.toggle_menu()
+
         self.ids.sm.current = nombre_pantalla
         nombres = {
             'recibos': "Impresión de Recibos",
@@ -2031,8 +2034,8 @@ class MenuDrawer(FloatLayout):
             'productos': "Productos",
             'inventarios': "Inventarios",
             'informes': "Reporte del Día",
-            'ventas_diarias': "Ventas Diarias (Historial)",
-            'mas_vendidos': "Productos Más Vendidos",
+            'ventas_diarias': "Ventas Diarias",
+            'mas_vendidos': "Más Vendidos",
             'reportes_guardados': "Reportes Guardados",
             'gastos': "Gastos / Compras",
             'recibos_anteriores': "Recibos anteriores"
