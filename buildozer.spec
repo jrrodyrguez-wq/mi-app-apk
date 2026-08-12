@@ -16,9 +16,10 @@ source.dir = .
 source.include_exts = py,png,jpg,kv,atlas,db,sqlite3
 
 # (str) Application versioning
-version = 0.2
+version = 0.1
 
 # (list) Application requirements
+# Incluimos pyjnius para que la conexión Bluetooth nativa funcione
 requirements = python3,kivy,sqlite3,pyjnius
 
 # (str) Supported orientation (cambiado a portrait para diseño vertical)
@@ -29,9 +30,6 @@ fullscreen = 0
 
 # (list) Permissions necesarios para Bluetooth y Android moderno
 android.permissions = INTERNET, BLUETOOTH, BLUETOOTH_ADMIN, BLUETOOTH_CONNECT, BLUETOOTH_SCAN, ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION
-
-# XML extra formateado correctamente entre comillas
-android.extra_manifest_xml = '<uses-permission android:name="android.permission.BLUETOOTH_SCAN" android:usesPermissionFlags="neverForLocation" />'
 
 # (int) Target Android API
 android.api = 34
