@@ -15,7 +15,18 @@ from kivy.uix.button import Button
 from kivy.uix.popup import Popup
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.textinput import TextInput
-from kivy.graphics import Color, Rectangle
+from kivy.graphics import Color, Rectangle, Line
+from kivy.core.window import Window
+from kivy.clock import Clock
+from kivy.uix.camera import Camera
+from kivy.core.audio import SoundLoader
+import cv2
+import zxingcpp
+import numpy as np
+
+# Configuración para que el teclado virtual no tape las cajas de texto
+Window.keyboard_anim_args = {'d': 0.2, 't': 'in_out_quad'}
+Window.softinput_mode = 'below_target'
 
 if platform == 'android':
     from jnius import autoclass
@@ -137,7 +148,7 @@ KV = '''
         ScreenManager:
             id: sm
             
-            # 1. IMPRESION DE RECIBOS (Optimizado para Teléfono)
+            # 1. IMPRESION DE RECIBOS
             Screen:
                 name: 'recibos'
                 ScrollView:
@@ -242,7 +253,7 @@ KV = '''
                                     bold: True
                                     on_press: root.guardar_venta()
 
-                        # --- BUSCADOR DE PRODUCTOS ---
+                        # --- BUSCADOR Y ESCÁNER DE PRODUCTOS ---
                         Label:
                             text: "Buscar Productos"
                             size_hint_y: None
@@ -251,16 +262,72 @@ KV = '''
                             bold: True
                             font_size: '14sp'
 
-                        TextInput:
-                            id: input_prod
-                            hint_text: "Nombre o código..."
+                        BoxLayout:
                             size_hint_y: None
                             height: dp(40)
-                            multiline: False
-                            foreground_color: 0, 0, 0, 1
-                            background_color: 1, 1, 1, 1
-                            cursor_color: 0, 0, 0, 1
-                            on_text: root.buscar_productos(self.text)
+                            spacing: dp(5)
+                            TextInput:
+                                id: input_prod
+                                hint_text: "Nombre o código..."
+                                size_hint_x: 0.7
+                                multiline: False
+                                foreground_color: 0, 0, 0, 1
+                                background_color: 1, 1, 1, 1
+                                cursor_color: 0, 0, 0, 1
+                                on_text: root.buscar_productos(self.text)
+                            Button:
+                                text: "📷 Escanear"
+                                size_hint_x: 0.3
+                                background_color: 0.1, 0.6, 0.2, 1
+                                color: 1, 1, 1, 1
+                                bold: True
+                                font_size: '12sp'
+                                on_press: root.abrir_escaner_camara(modo='carrito')
+
+                        # --- CONTROLES PARA CANTIDAD MULTIPLE ---
+                        BoxLayout:
+                            size_hint_y: None
+                            height: dp(40)
+                            spacing: dp(5)
+                            Label:
+                                text: "Cant:"
+                                size_hint_x: None
+                                width: dp(45)
+                                color: 0, 0, 0, 1
+                                bold: True
+                                font_size: '13sp'
+                            TextInput:
+                                id: input_cant_agregar
+                                text: "1"
+                                input_filter: 'int'
+                                multiline: False
+                                size_hint_x: 0.3
+                                font_size: '15sp'
+                                foreground_color: 0, 0, 0, 1
+                                background_color: 1, 1, 1, 1
+                                cursor_color: 0, 0, 0, 1
+                                halign: 'center'
+                            Button:
+                                text: "+1"
+                                size_hint_x: 0.23
+                                background_color: 0.3, 0.6, 0.9, 1
+                                color: 1, 1, 1, 1
+                                bold: True
+                                on_press: root.sumar_cantidad_input(1)
+                            Button:
+                                text: "+5"
+                                size_hint_x: 0.23
+                                background_color: 0.3, 0.6, 0.9, 1
+                                color: 1, 1, 1, 1
+                                bold: True
+                                on_press: root.sumar_cantidad_input(5)
+                            Button:
+                                text: "+10"
+                                size_hint_x: 0.24
+                                background_color: 0.3, 0.6, 0.9, 1
+                                color: 1, 1, 1, 1
+                                bold: True
+                                on_press: root.sumar_cantidad_input(10)
 
                         RecycleView:
                             id: rv_productos
@@ -591,15 +658,26 @@ KV = '''
                             height: dp(45)
                             font_size: '15sp'
 
-                        TextInput:
-                            id: prod_codigo
-                            hint_text: "Código de barras (Opcional)"
-                            foreground_color: 0, 0, 0, 1
-                            background_color: 1, 1, 1, 1
-                            cursor_color: 0, 0, 0, 1
+                        BoxLayout:
                             size_hint_y: None
                             height: dp(45)
-                            font_size: '15sp'
+                            spacing: dp(5)
+                            TextInput:
+                                id: prod_codigo
+                                hint_text: "Código de barras (Opcional)"
+                                size_hint_x: 0.7
+                                foreground_color: 0, 0, 0, 1
+                                background_color: 1, 1, 1, 1
+                                cursor_color: 0, 0, 0, 1
+                                font_size: '15sp'
+                            Button:
+                                text: "📷 Escanear"
+                                size_hint_x: 0.3
+                                background_color: 0.1, 0.6, 0.2, 1
+                                color: 1, 1, 1, 1
+                                bold: True
+                                font_size: '12sp'
+                                on_press: root.abrir_escaner_camara(modo='alta_codigo')
 
                         Button:
                             text: "Registrar Producto"
@@ -660,15 +738,26 @@ KV = '''
                             height: dp(45)
                             font_size: '15sp'
 
-                        TextInput:
-                            id: prod_edit_codigo
-                            hint_text: "Nuevo código"
-                            foreground_color: 0, 0, 0, 1
-                            background_color: 1, 1, 1, 1
-                            cursor_color: 0, 0, 0, 1
+                        BoxLayout:
                             size_hint_y: None
                             height: dp(45)
-                            font_size: '15sp'
+                            spacing: dp(5)
+                            TextInput:
+                                id: prod_edit_codigo
+                                hint_text: "Nuevo código"
+                                size_hint_x: 0.7
+                                foreground_color: 0, 0, 0, 1
+                                background_color: 1, 1, 1, 1
+                                cursor_color: 0, 0, 0, 1
+                                font_size: '15sp'
+                            Button:
+                                text: "📷 Escanear"
+                                size_hint_x: 0.3
+                                background_color: 0.1, 0.6, 0.2, 1
+                                color: 1, 1, 1, 1
+                                bold: True
+                                font_size: '12sp'
+                                on_press: root.abrir_escaner_camara(modo='edit_codigo')
 
                         Button:
                             text: "Actualizar Producto"
@@ -975,7 +1064,7 @@ KV = '''
                             height: self.minimum_height
                             spacing: dp(5)
 
-    # --- PANEL LATERAL OVERLAY (Menú Desplegable Móvil) ---
+    # --- PANEL LATERAL OVERLAY ---
     BoxLayout:
         id: nav_panel
         orientation: 'vertical'
@@ -1136,6 +1225,8 @@ KV = '''
                     on_press: root.cambiar_pantalla('recibos_anteriores')
 '''
 
+Builder.load_string(KV)
+
 class BotonLista(Button):
     pass
 
@@ -1149,7 +1240,166 @@ class MenuDrawer(FloatLayout):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.carrito = []
+        self.sound_beep = SoundLoader.load('Barcode scanner beep sound (sound effect).mp3')
         self.cargar_datos_db()
+
+    def reproducir_beep(self):
+        if self.sound_beep:
+            self.sound_beep.play()
+
+    def abrir_escaner_camara(self, modo='carrito'):
+        layout = FloatLayout()
+        
+        # Inicialización rápida de cámara
+        camara = Camera(index=0, play=True, size_hint=(1, 1), pos_hint={'x': 0, 'y': 0})
+        layout.add_widget(camara)
+        
+        overlay = FloatLayout(size_hint=(1, 1), pos_hint={'x': 0, 'y': 0})
+        with overlay.canvas:
+            Color(1, 0, 0, 0.8)
+            self.linea_roja = Line(points=[], width=2)
+
+        def actualizar_linea(instance, value):
+            center_y = camara.center_y
+            self.linea_roja.points = [camara.x + dp(20), center_y, camara.right - dp(20), center_y]
+
+        camara.bind(pos=actualizar_linea, size=actualizar_linea)
+        layout.add_widget(overlay)
+        
+        lbl_estado = Label(
+            text="Alinea el código con la línea roja...",
+            size_hint=(1, None), height=dp(30),
+            pos_hint={'x': 0, 'top': 0.98},
+            color=(1, 1, 1, 1), bold=True
+        )
+        layout.add_widget(lbl_estado)
+        
+        btn_cerrar = Button(
+            text="Cancelar / Cerrar",
+            size_hint=(1, None), height=dp(45),
+            pos_hint={'x': 0, 'y': 0},
+            background_color=(0.8, 0.2, 0.2, 1), color=(1,1,1,1), bold=True
+        )
+        layout.add_widget(btn_cerrar)
+
+        popup = Popup(title="Escáner de Código de Barras", content=layout, size_hint=(0.95, 0.85), auto_dismiss=False)
+        
+        def cerrar_popup(instance):
+            Clock.unschedule(procesar_frame)
+            camara.play = False
+            popup.dismiss()
+
+        btn_cerrar.bind(on_press=cerrar_popup)
+
+        def procesar_frame(dt):
+            if not camara.texture:
+                return
+            try:
+                buffer = camara.texture.pixels
+                w, h = camara.texture.size
+                
+                if not buffer or len(buffer) != w * h * 4:
+                    return
+
+                frame = np.frombuffer(buffer, dtype=np.uint8).reshape((h, w, 4))
+                
+                # OPTIMIZACIÓN 1: Reducir tamaño de la imagen para procesamiento ultra rápido
+                escala = 0.5
+                frame_small = cv2.resize(frame, (0, 0), fx=escala, fy=escala, interpolation=cv2.INTER_NEAREST)
+                frame_small = cv2.flip(frame_small, 0)
+                
+                # OPTIMIZACIÓN 2: Extracción directa de canal escala de grises
+                gray = cv2.cvtColor(frame_small, cv2.COLOR_RGBA2GRAY)
+
+                # Configurar zxingcpp para escaneo rápido de formatos comunes
+                barcodes = zxingcpp.read_barcodes(gray)
+                for barcode in barcodes:
+                    codigo_detectado = barcode.text
+                    if codigo_detectado:
+                        Clock.unschedule(procesar_frame)
+                        camara.play = False
+                        self.reproducir_beep()
+                        popup.dismiss()
+                        
+                        if modo == 'carrito':
+                            self.procesar_codigo_escaneado(codigo_detectado)
+                        elif modo == 'alta_codigo':
+                            self.ids.prod_codigo.text = codigo_detectado
+                        elif modo == 'edit_codigo':
+                            self.ids.prod_edit_codigo.text = codigo_detectado
+                        break
+            except Exception as e:
+                print(f"Error procesando frame del escáner: {e}")
+
+        # OPTIMIZACIÓN 3: Ejecutar el escaneo a 30 FPS
+        Clock.schedule_interval(procesar_frame, 1.0 / 30.0)
+        popup.open()
+
+    def procesar_codigo_escaneado(self, codigo):
+        conexion = sqlite3.connect("sistemapos.db")
+        cursor = conexion.cursor()
+        cursor.execute("SELECT nombre, precio, stock FROM productos WHERE codigo = ?", (codigo,))
+        producto = cursor.fetchone()
+        conexion.close()
+
+        if producto:
+            nombre, precio, stock_actual = producto
+            cant_str = self.ids.input_cant_agregar.text.strip()
+            self.agregar_al_carrito(nombre, cant_str if cant_str else "1")
+            self.ids.input_cant_agregar.text = "1"
+        else:
+            self.popup_producto_no_registrado_alerta(codigo)
+
+    def popup_producto_no_registrado_alerta(self, codigo):
+        content = BoxLayout(orientation='vertical', padding=15, spacing=10)
+        
+        content.add_widget(Label(
+            text="⚠️ PRODUCTO NO REGISTRADO",
+            color=(0.9, 0.2, 0.2, 1), font_size='16sp', bold=True, size_hint_y=None, height=dp(30)
+        ))
+        
+        content.add_widget(Label(
+            text=f"El código scanneado [{codigo}] no se encuentra en el inventario.\n\nPor favor, regístrelo en la sección de Productos para continuar.",
+            color=(0, 0, 0, 1), font_size='14sp', halign='center'
+        ))
+
+        btn_layout = BoxLayout(size_hint_y=None, height=dp(45), spacing=10)
+        btn_ir_a_registrar = Button(
+            text="Ir a Registrar Producto",
+            background_color=(0.1, 0.6, 0.2, 1), color=(1,1,1,1), bold=True
+        )
+        btn_cerrar = Button(
+            text="Cerrar",
+            background_color=(0.8, 0.2, 0.2, 1), color=(1,1,1,1), bold=True
+        )
+
+        popup = Popup(title="Aviso de Inventario", content=content, size_hint=(0.85, 0.45), auto_dismiss=False)
+
+        def ir_a_productos(instance):
+            popup.dismiss()
+            self.cambiar_pantalla('productos')
+            self.ids.prod_codigo.text = codigo
+
+        btn_ir_a_registrar.bind(on_press=ir_a_productos)
+        btn_cerrar.bind(on_press=popup.dismiss)
+
+        btn_layout.add_widget(btn_ir_a_registrar)
+        btn_layout.add_widget(btn_cerrar)
+        content.add_widget(btn_layout)
+
+        with content.canvas.before:
+            Color(1, 1, 1, 1)
+            rect = Rectangle(pos=content.pos, size=content.size)
+        content.bind(pos=lambda s, p: setattr(rect, 'pos', p), size=lambda s, sz: setattr(rect, 'size', sz))
+
+        popup.open()
+
+    def sumar_cantidad_input(self, valor):
+        try:
+            val_actual = int(self.ids.input_cant_agregar.text)
+        except ValueError:
+            val_actual = 0
+        self.ids.input_cant_agregar.text = str(val_actual + valor)
 
     def cargar_datos_db(self):
         conexion = sqlite3.connect("sistemapos.db")
@@ -1231,7 +1481,9 @@ class MenuDrawer(FloatLayout):
         self.ids.spinner_cliente.text = nombre_cliente
 
     def agregar_al_carrito_desde_buscador(self, producto_nombre):
-        self.agregar_al_carrito(producto_nombre, "1")
+        cant_str = self.ids.input_cant_agregar.text.strip()
+        self.agregar_al_carrito(producto_nombre, cant_str if cant_str else "1")
+        self.ids.input_cant_agregar.text = "1"
 
     def rellenar_cliente_pedido(self, nombre_cliente):
         if not nombre_cliente or "Seleccionar" in nombre_cliente or "Sin clientes" in nombre_cliente:
@@ -1584,6 +1836,8 @@ class MenuDrawer(FloatLayout):
             return
         try:
             cantidad = int(cantidad_str) if cantidad_str else 1
+            if cantidad <= 0:
+                cantidad = 1
         except ValueError:
             cantidad = 1
 
@@ -2022,7 +2276,6 @@ class MenuDrawer(FloatLayout):
             self.menu_abierto = True
 
     def cambiar_pantalla(self, nombre_pantalla):
-        # Oculta el menú de hamburguesa automáticamente al presionar cualquier módulo
         if self.menu_abierto:
             self.toggle_menu()
 
@@ -2065,30 +2318,23 @@ class MenuDrawer(FloatLayout):
             bytes_ticket = bytearray()
             bytes_ticket.extend(b'\x1B\x45\x01')
             bytes_ticket.extend(b"================================\n")
-            bytes_ticket.extend(b"       ABARROTERA CERF        \n")
+            bytes_ticket.extend(b"       SISTEMA POS RUTA         \n")
             bytes_ticket.extend(b"================================\n")
             bytes_ticket.extend(f"Cliente: {cliente}\n".encode('utf-8', errors='ignore'))
             bytes_ticket.extend(f"Fecha: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n".encode('utf-8'))
             bytes_ticket.extend(b"--------------------------------\n")
-            bytes_ticket.extend(b"CANT  PRODUCTO          TOTAL\n")
-            bytes_ticket.extend(b"--------------------------------\n")
-            
+            bytes_ticket.extend(b"Cant   Articulo       Subtotal\n")
             for item in self.carrito:
-                cant = item.get('cantidad', 1)
-                nombre = item.get('nombre', 'Articulo')[:15].ljust(15)
-                subtotal = f"${item.get('subtotal', 0.0):.2f}"
-                linea = f"{cant:<5} {nombre} {subtotal:>8}\n"
+                nombre_p = item['nombre'][:12]
+                linea = f"{item['cantidad']:<6} {nombre_p:<12} ${item['subtotal']:.2f}\n"
                 bytes_ticket.extend(linea.encode('utf-8', errors='ignore'))
-                
             bytes_ticket.extend(b"--------------------------------\n")
-            total_str = f"TOTAL:    ${total_general:.2f}\n"
-            bytes_ticket.extend(total_str.encode('utf-8'))
-            bytes_ticket.extend(b"\n")
-            bytes_ticket.extend("   ¡Gracias por su compra!      \n".encode('utf-8'))
-            bytes_ticket.extend(b"\n\n\n")
+            bytes_ticket.extend(f"TOTAL: ${total_general:.2f}\n".encode('utf-8'))
+            bytes_ticket.extend(b"================================\n")
+            bytes_ticket.extend(b"  Gracias por su preferencia!   \n\n\n\n")
             bytes_ticket.extend(b'\x1B\x45\x00')
             bytes_ticket.extend(b'\x1D\x56\x41\x00')
-            
+
             if platform == 'android':
                 bluetooth_adapter = BluetoothAdapter.getDefaultAdapter()
                 paired_devices = bluetooth_adapter.getBondedDevices().toArray()
@@ -2106,33 +2352,18 @@ class MenuDrawer(FloatLayout):
                     output_stream.write(bytes(bytes_ticket))
                     output_stream.flush()
                     socket.close()
+                    self.guardar_venta()
             else:
-                print("Simulación de impresión en PC:")
+                print("Simulación de impresión de ticket:")
                 print(bytes_ticket.decode('utf-8', errors='ignore'))
-                
+                self.guardar_venta()
         except Exception as e:
             print(f"Error al imprimir ticket: {e}")
 
-
-class MiAppPOS(App):
+class SistemaPOSApp(App):
     def build(self):
-        if platform == 'android':
-            from android.permissions import request_permissions, Permission
-            def callback(permissions, results):
-                pass
-            request_permissions([
-                Permission.ACCESS_FINE_LOCATION,
-                Permission.ACCESS_COARSE_LOCATION,
-                Permission.BLUETOOTH_SCAN,
-                Permission.BLUETOOTH_CONNECT,
-                Permission.BLUETOOTH_ADMIN,
-                Permission.BLUETOOTH
-            ], callback)
-            
         inicializar_db()
-        Builder.load_string(KV)
         return MenuDrawer()
 
-
 if __name__ == '__main__':
-    MiAppPOS().run()
+    SistemaPOSApp().run()
