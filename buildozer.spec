@@ -19,8 +19,8 @@ source.include_exts = py,png,jpg,kv,atlas,db,sqlite3
 version = 0.1
 
 # (list) Application requirements
-# Fijamos Python 3.11.5 para garantizar compatibilidad con los wheels de Android
-requirements = python3==3.11.5,kivy,sqlite3,pyjnius,opencv,numpy
+# Usamos python3 genérico para que coincida con el hostpython3 del sistema
+requirements = python3,kivy,sqlite3,pyjnius,opencv,numpy
 
 # (str) Supported orientation
 orientation = portrait
