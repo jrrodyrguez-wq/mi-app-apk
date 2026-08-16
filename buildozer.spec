@@ -19,17 +19,20 @@ source.include_exts = py,png,jpg,kv,atlas,db,sqlite3
 version = 0.1
 
 # (list) Application requirements
-# Incluimos pyjnius para que la conexión Bluetooth nativa funcione
-requirements = python3,kivy,sqlite3,pyjnius
+# Incluimos opencv y numpy para el escáner, y pyjnius para la impresora Bluetooth
+requirements = python3,kivy,sqlite3,pyjnius,opencv,numpy
 
-# (str) Supported orientation (cambiado a portrait para diseño vertical)
+# (str) Supported orientation
 orientation = portrait
 
 # (bool) Indicate if the application should be fullscreen or not
 fullscreen = 0
 
-# (list) Permissions necesarios para Bluetooth y Android moderno
-android.permissions = INTERNET, BLUETOOTH, BLUETOOTH_ADMIN, BLUETOOTH_CONNECT, BLUETOOTH_SCAN, ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION
+# (list) Permissions necesarios para Cámara, Bluetooth y Ubicación (requerida por Bluetooth en Android moderno)
+android.permissions = INTERNET, CAMERA, BLUETOOTH, BLUETOOTH_ADMIN, BLUETOOTH_CONNECT, BLUETOOTH_SCAN, ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION
+
+# (list) Features requeridas por el hardware del dispositivo
+android.features = android.hardware.camera, android.hardware.camera.autofocus
 
 # (int) Target Android API
 android.api = 34
