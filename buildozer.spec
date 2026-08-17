@@ -19,8 +19,8 @@ source.include_exts = py,png,jpg,kv,atlas,db,sqlite3
 version = 0.1
 
 # (list) Application requirements
-# Fijamos charset-normalizer==3.3.2 para evitar el wheel incompatible de Python 3.14
-requirements = python3,kivy,sqlite3,pyjnius,opencv,numpy,charset-normalizer==3.3.2
+# Usamos charset-normalizer==3.0.1 que no depende de wheels pre-compilados de cp314
+requirements = python3,kivy,sqlite3,pyjnius,opencv,numpy,charset-normalizer==3.0.1
 
 # (str) Supported orientation
 orientation = portrait
@@ -45,6 +45,9 @@ android.archs = arm64-v8a
 
 # (bool) Accept SDK license automatically
 android.accept_sdk_license = True
+
+# (str) Extra pip arguments for python-for-android
+p4a.pip_build_args = --no-binary charset-normalizer
 
 [buildozer]
 
