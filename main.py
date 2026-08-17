@@ -1251,7 +1251,11 @@ class MenuDrawer(FloatLayout):
         layout = FloatLayout()
         
         # Inicialización rápida de cámara
-        camara = Camera(index=0, play=True, size_hint=(1, 1), pos_hint={'x': 0, 'y': 0})
+        # OPTIMIZACIÓN: fijar una resolución baja (en vez de dejar que el driver
+        # negocie la máxima resolución del sensor). Esto hace que la cámara
+        # abra más rápido y que cada frame pese menos para procesar.
+        camara = Camera(index=0, play=True, size_hint=(1, 1), pos_hint={'x': 0, 'y': 0},
+                         resolution=(640, 480))
         layout.add_widget(camara)
         
         overlay = FloatLayout(size_hint=(1, 1), pos_hint={'x': 0, 'y': 0})
@@ -1302,17 +1306,34 @@ class MenuDrawer(FloatLayout):
                     return
 
                 frame = np.frombuffer(buffer, dtype=np.uint8).reshape((h, w, 4))
-                
-                # OPTIMIZACIÓN 1: Reducir tamaño de la imagen para procesamiento ultra rápido
-                escala = 0.5
-                frame_small = cv2.resize(frame, (0, 0), fx=escala, fy=escala, interpolation=cv2.INTER_NEAREST)
+
+                # OPTIMIZACIÓN 1: recortar solo la franja central (alrededor de la
+                # línea roja donde el usuario alinea el código). Menos píxeles
+                # que analizar = detección mucho más rápida. Se deja suficiente
+                # alto para que también entren códigos QR.
+                franja_alto = int(h * 0.55)
+                centro_y = h // 2
+                y0 = max(0, centro_y - franja_alto // 2)
+                y1 = min(h, centro_y + franja_alto // 2)
+                frame_franja = frame[y0:y1, :]
+
+                # OPTIMIZACIÓN 2: Reducir tamaño de la imagen para procesamiento ultra rápido
+                escala = 0.45
+                frame_small = cv2.resize(frame_franja, (0, 0), fx=escala, fy=escala, interpolation=cv2.INTER_NEAREST)
                 frame_small = cv2.flip(frame_small, 0)
                 
-                # OPTIMIZACIÓN 2: Extracción directa de canal escala de grises
+                # OPTIMIZACIÓN 3: Extracción directa de canal escala de grises
                 gray = cv2.cvtColor(frame_small, cv2.COLOR_RGBA2GRAY)
 
-                # Configurar zxingcpp para escaneo rápido de formatos comunes
-                barcodes = zxingcpp.read_barcodes(gray)
+                # OPTIMIZACIÓN 4: limitar zxingcpp a los formatos que realmente se usan
+                # (códigos de barras 1D + QR) y desactivar pasos de "intentar más duro"
+                # que sirven para imágenes dañadas/borrosas pero cuestan tiempo.
+                barcodes = zxingcpp.read_barcodes(
+                    gray,
+                    formats=zxingcpp.BarcodeFormat.LinearCodes | zxingcpp.BarcodeFormat.QRCode,
+                    try_rotate=False,
+                    try_downscale=False,
+                )
                 for barcode in barcodes:
                     codigo_detectado = barcode.text
                     if codigo_detectado:
@@ -1331,7 +1352,10 @@ class MenuDrawer(FloatLayout):
             except Exception as e:
                 print(f"Error procesando frame del escáner: {e}")
 
-        # OPTIMIZACIÓN 3: Ejecutar el escaneo a 30 FPS
+        # OPTIMIZACIÓN 5: Ejecutar el escaneo a 30 FPS. Como cada frame ahora
+        # pesa mucho menos (franja recortada + menor resolución + menor escala),
+        # este intervalo se cumple de verdad en vez de ir "atrasado", que era
+        # la causa real de que el escaneo se sintiera lento.
         Clock.schedule_interval(procesar_frame, 1.0 / 30.0)
         popup.open()
 
