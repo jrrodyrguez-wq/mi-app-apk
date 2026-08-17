@@ -1,0 +1,4 @@
+kivy
+pyjnius
+numpy
+charset-normalizer==3.3.2
