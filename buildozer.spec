@@ -12,7 +12,7 @@ source.include_exts = py,png,jpg,kv,atlas,db,sqlite3,mp3
 # (str) Application versioning
 version = 0.1
 # (list) Application requirements
-requirements = python3,kivy,sqlite3,pyjnius,opencv,numpy,zxing-cpp,charset-normalizer==3.0.1
+requirements = python3,kivy,sqlite3,pyjnius,opencv,numpy,zxing-cpp
 # (str) Supported orientation
 orientation = portrait
 # (bool) Indicate if the application should be fullscreen or not
@@ -29,8 +29,6 @@ android.minapi = 24
 android.archs = arm64-v8a
 # (bool) Accept SDK license automatically
 android.accept_sdk_license = True
-# Forzar a pip a ignorar wheels precompilados de charset-normalizer
-p4a.pip_build_args = --no-binary charset-normalizer
 
 [buildozer]
 # (int) Log level (0 = error only, 1 = info, 2 = debug (with command output))
