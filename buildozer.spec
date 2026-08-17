@@ -19,8 +19,8 @@ source.include_exts = py,png,jpg,kv,atlas,db,sqlite3
 version = 0.1
 
 # (list) Application requirements
-# Usamos python3 genérico para que coincida con el hostpython3 del sistema
-requirements = python3,kivy,sqlite3,pyjnius,opencv,numpy
+# Fijamos charset-normalizer==3.3.2 para evitar el wheel incompatible de Python 3.14
+requirements = python3,kivy,sqlite3,pyjnius,opencv,numpy,charset-normalizer==3.3.2
 
 # (str) Supported orientation
 orientation = portrait
