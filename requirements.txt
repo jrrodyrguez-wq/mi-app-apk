@@ -1,4 +1,6 @@
 kivy
 pyjnius
 numpy
+opencv-python
+zxing-cpp
 charset-normalizer==3.0.1
