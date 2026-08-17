@@ -20,7 +20,8 @@ version = 0.1
 
 # (list) Application requirements
 # Usamos charset-normalizer==3.1.0 con soporte estable para wheels de Android ARM64
-requirements = python3,kivy,sqlite3,pyjnius,opencv,numpy,charset-normalizer==3.1.0
+# (list) Application requirements
+requirements = python3,kivy,sqlite3,pyjnius,opencv,numpy,charset-normalizer==3.3.2
 
 # (str) Supported orientation
 orientation = portrait
