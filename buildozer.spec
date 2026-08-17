@@ -19,9 +19,7 @@ source.include_exts = py,png,jpg,kv,atlas,db,sqlite3
 version = 0.1
 
 # (list) Application requirements
-# Usamos charset-normalizer==3.1.0 con soporte estable para wheels de Android ARM64
-# (list) Application requirements
-requirements = python3,kivy,sqlite3,pyjnius,opencv,numpy,charset-normalizer==3.3.2
+requirements = python3,kivy,sqlite3,pyjnius,opencv,numpy,charset-normalizer==3.0.1
 
 # (str) Supported orientation
 orientation = portrait
@@ -46,6 +44,9 @@ android.archs = arm64-v8a
 
 # (bool) Accept SDK license automatically
 android.accept_sdk_license = True
+
+# Forzar a pip a ignorar wheels precompilados de charset-normalizer
+p4a.pip_build_args = --no-binary charset-normalizer
 
 [buildozer]
 
