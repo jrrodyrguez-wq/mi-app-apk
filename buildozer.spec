@@ -13,6 +13,7 @@ android.api = 34
 android.minapi = 24
 android.archs = arm64-v8a
 android.accept_sdk_license = True
+p4a.pip_build_args = --no-binary charset-normalizer
 
 [buildozer]
 log_level = 2
