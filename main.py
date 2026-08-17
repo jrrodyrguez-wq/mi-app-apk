@@ -21,7 +21,7 @@ from kivy.clock import Clock
 from kivy.uix.camera import Camera
 from kivy.core.audio import SoundLoader
 import cv2
-import zxingcpp
+from pyzbar.pyzbar import decode as zbar_decode
 import numpy as np
 
 # Configuración para que el teclado virtual no tape las cajas de texto
@@ -1325,17 +1325,11 @@ class MenuDrawer(FloatLayout):
                 # OPTIMIZACIÓN 3: Extracción directa de canal escala de grises
                 gray = cv2.cvtColor(frame_small, cv2.COLOR_RGBA2GRAY)
 
-                # OPTIMIZACIÓN 4: limitar zxingcpp a los formatos que realmente se usan
-                # (códigos de barras 1D + QR) y desactivar pasos de "intentar más duro"
-                # que sirven para imágenes dañadas/borrosas pero cuestan tiempo.
-                barcodes = zxingcpp.read_barcodes(
-                    gray,
-                    formats=zxingcpp.BarcodeFormat.LinearCodes | zxingcpp.BarcodeFormat.QRCode,
-                    try_rotate=False,
-                    try_downscale=False,
-                )
+                # OPTIMIZACIÓN 4: pyzbar lee códigos de barras 1D y QR directamente
+                # sobre la imagen en escala de grises (más liviano que a color).
+                barcodes = zbar_decode(gray)
                 for barcode in barcodes:
-                    codigo_detectado = barcode.text
+                    codigo_detectado = barcode.data.decode('utf-8', errors='ignore')
                     if codigo_detectado:
                         Clock.unschedule(procesar_frame)
                         camara.play = False
