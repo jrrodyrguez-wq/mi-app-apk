@@ -34,6 +34,37 @@ if platform == 'android':
     BluetoothAdapter = autoclass('android.bluetooth.BluetoothAdapter')
     UUID = autoclass('java.util.UUID')
 
+    def activar_autoenfoque_continuo(camara_widget):
+        """Fuerza el modo de enfoque continuo de Android en el widget Camera
+        de Kivy. Sin esto, la cámara suele quedarse con enfoque fijo y la
+        imagen se ve borrosa al acercarla para escanear un código.
+        Se protege con try/except porque el nombre del atributo interno que
+        guarda la cámara nativa de Android puede variar según la versión de
+        Kivy; si falla, simplemente no se activa el autoenfoque (no rompe
+        nada más de la app)."""
+        try:
+            android_cam = None
+            for attr in ('_camera', '_android_camera'):
+                android_cam = getattr(camara_widget, attr, None)
+                if android_cam is not None:
+                    break
+            if android_cam is None:
+                return
+
+            parametros = android_cam.getParameters()
+            modos_soportados = parametros.getSupportedFocusModes()
+
+            if modos_soportados and modos_soportados.contains("continuous-picture"):
+                parametros.setFocusMode("continuous-picture")
+            elif modos_soportados and modos_soportados.contains("continuous-video"):
+                parametros.setFocusMode("continuous-video")
+            elif modos_soportados and modos_soportados.contains("macro"):
+                parametros.setFocusMode("macro")
+
+            android_cam.setParameters(parametros)
+        except Exception as e:
+            print(f"No se pudo activar el autoenfoque continuo: {e}")
+
 # Inicializar Base de Datos SQLite y Tablas
 def inicializar_db():
     conexion = sqlite3.connect("sistemapos.db")
@@ -1310,6 +1341,11 @@ class MenuDrawer(FloatLayout):
 
         camara_holder.add_widget(camara)
         layout.add_widget(camara_holder)
+
+        # Dar medio segundo para que el hardware de la cámara termine de
+        # inicializar antes de intentar cambiarle el modo de enfoque.
+        if platform == 'android':
+            Clock.schedule_once(lambda dt: activar_autoenfoque_continuo(camara), 0.5)
         
         overlay = FloatLayout(size_hint=(1, 1), pos_hint={'x': 0, 'y': 0})
         with overlay.canvas:
