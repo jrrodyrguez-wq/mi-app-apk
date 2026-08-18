@@ -15,7 +15,7 @@ from kivy.uix.button import Button
 from kivy.uix.popup import Popup
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.textinput import TextInput
-from kivy.graphics import Color, Rectangle, Line
+from kivy.graphics import Color, Rectangle, Line, PushMatrix, PopMatrix, Rotate
 from kivy.core.window import Window
 from kivy.clock import Clock
 from kivy.uix.camera import Camera
@@ -1251,6 +1251,15 @@ class MenuDrawer(FloatLayout):
     def abrir_escaner_camara(self, modo='carrito'):
         layout = FloatLayout()
 
+        # CORRECCIÓN DE ORIENTACIÓN: en muchos celulares Android, el widget
+        # Camera de Kivy entrega el video ya rotado (el sensor de la cámara
+        # no está montado alineado con cómo sostienes el teléfono). Si
+        # después de este cambio la imagen sigue viéndose de lado o al
+        # revés, cambia este valor: prueba 90, -90 o 180 hasta que se vea
+        # derecha. El mismo valor se usa también para "enderezar" los datos
+        # del frame que se analizan en busca del código.
+        ROTACION_CAMARA = -90
+
         # Inicialización rápida de cámara
         # OPTIMIZACIÓN: fijar una resolución baja (en vez de dejar que el driver
         # negocie la máxima resolución del sensor). Esto hace que la cámara
@@ -1259,8 +1268,8 @@ class MenuDrawer(FloatLayout):
         # concedido (o el hardware no está disponible), Camera() puede lanzar
         # una excepción nativa que antes cerraba la app por completo.
         try:
-            camara = Camera(index=0, play=True, size_hint=(1, 1), pos_hint={'x': 0, 'y': 0},
-                             resolution=(640, 480))
+            camara = Camera(index=0, play=True, resolution=(640, 480),
+                             size_hint=(None, None), pos_hint={'center_x': 0.5, 'center_y': 0.5})
         except Exception as e:
             print(f"Error al iniciar la cámara: {e}")
             popup_error = Popup(
@@ -1273,7 +1282,34 @@ class MenuDrawer(FloatLayout):
             )
             popup_error.open()
             return
-        layout.add_widget(camara)
+
+        camara_holder = FloatLayout(size_hint=(1, 1), pos_hint={'x': 0, 'y': 0})
+
+        # Si la rotación es de 90/-90, ancho y alto se intercambian: el
+        # widget se dibuja "acostado" y luego se rota, así que al final
+        # queda ocupando todo el contenedor sin dejar franjas vacías.
+        def ajustar_tamano_camara(instance, value):
+            if abs(ROTACION_CAMARA) % 180 == 90:
+                camara.size = (camara_holder.height, camara_holder.width)
+            else:
+                camara.size = (camara_holder.width, camara_holder.height)
+
+        camara_holder.bind(size=ajustar_tamano_camara, pos=ajustar_tamano_camara)
+        ajustar_tamano_camara(None, None)
+
+        with camara.canvas.before:
+            PushMatrix()
+            self.rotacion_camara_gfx = Rotate(angle=ROTACION_CAMARA, origin=camara.center)
+        with camara.canvas.after:
+            PopMatrix()
+
+        def actualizar_origen_rotacion(instance, value):
+            self.rotacion_camara_gfx.origin = camara.center
+
+        camara.bind(pos=actualizar_origen_rotacion, size=actualizar_origen_rotacion)
+
+        camara_holder.add_widget(camara)
+        layout.add_widget(camara_holder)
         
         overlay = FloatLayout(size_hint=(1, 1), pos_hint={'x': 0, 'y': 0})
         with overlay.canvas:
@@ -1281,10 +1317,10 @@ class MenuDrawer(FloatLayout):
             self.linea_roja = Line(points=[], width=2)
 
         def actualizar_linea(instance, value):
-            center_y = camara.center_y
-            self.linea_roja.points = [camara.x + dp(20), center_y, camara.right - dp(20), center_y]
+            center_y = camara_holder.center_y
+            self.linea_roja.points = [camara_holder.x + dp(20), center_y, camara_holder.right - dp(20), center_y]
 
-        camara.bind(pos=actualizar_linea, size=actualizar_linea)
+        camara_holder.bind(pos=actualizar_linea, size=actualizar_linea)
         layout.add_widget(overlay)
         
         lbl_estado = Label(
@@ -1323,6 +1359,17 @@ class MenuDrawer(FloatLayout):
                     return
 
                 frame = np.frombuffer(buffer, dtype=np.uint8).reshape((h, w, 4))
+
+                # Aplicar la MISMA rotación que se usa para mostrar el video
+                # (ROTACION_CAMARA), así la franja/escaneo trabajan sobre la
+                # imagen ya "enderezada" y coinciden con lo que ve el usuario.
+                if ROTACION_CAMARA in (90, -270):
+                    frame = cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
+                elif ROTACION_CAMARA in (-90, 270):
+                    frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
+                elif ROTACION_CAMARA == 180:
+                    frame = cv2.rotate(frame, cv2.ROTATE_180)
+                h, w = frame.shape[0], frame.shape[1]
 
                 # OPTIMIZACIÓN 1: recortar solo la franja central (alrededor de la
                 # línea roja donde el usuario alinea el código). Menos píxeles
