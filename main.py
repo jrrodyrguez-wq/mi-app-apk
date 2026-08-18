@@ -30,6 +30,7 @@ Window.softinput_mode = 'below_target'
 
 if platform == 'android':
     from jnius import autoclass
+    from android.permissions import request_permissions, Permission
     BluetoothAdapter = autoclass('android.bluetooth.BluetoothAdapter')
     UUID = autoclass('java.util.UUID')
 
@@ -1249,13 +1250,29 @@ class MenuDrawer(FloatLayout):
 
     def abrir_escaner_camara(self, modo='carrito'):
         layout = FloatLayout()
-        
+
         # Inicialización rápida de cámara
         # OPTIMIZACIÓN: fijar una resolución baja (en vez de dejar que el driver
         # negocie la máxima resolución del sensor). Esto hace que la cámara
         # abra más rápido y que cada frame pese menos para procesar.
-        camara = Camera(index=0, play=True, size_hint=(1, 1), pos_hint={'x': 0, 'y': 0},
-                         resolution=(640, 480))
+        # Se protege con try/except porque si el permiso de cámara no fue
+        # concedido (o el hardware no está disponible), Camera() puede lanzar
+        # una excepción nativa que antes cerraba la app por completo.
+        try:
+            camara = Camera(index=0, play=True, size_hint=(1, 1), pos_hint={'x': 0, 'y': 0},
+                             resolution=(640, 480))
+        except Exception as e:
+            print(f"Error al iniciar la cámara: {e}")
+            popup_error = Popup(
+                title="No se pudo abrir la cámara",
+                content=Label(
+                    text="Verifica que le diste permiso de cámara a la app\nen Ajustes > Apps > Generador De Tickets > Permisos.",
+                    color=(0, 0, 0, 1), halign='center'
+                ),
+                size_hint=(0.85, 0.35)
+            )
+            popup_error.open()
+            return
         layout.add_widget(camara)
         
         overlay = FloatLayout(size_hint=(1, 1), pos_hint={'x': 0, 'y': 0})
@@ -2381,6 +2398,19 @@ class MenuDrawer(FloatLayout):
 class SistemaPOSApp(App):
     def build(self):
         inicializar_db()
+        # En Android hay que pedir los permisos peligrosos (cámara, bluetooth,
+        # ubicación) en tiempo de ejecución; declararlos solo en el
+        # buildozer.spec no es suficiente desde Android 6. Sin esto, la app
+        # se cerraba de golpe al intentar abrir la cámara para escanear.
+        if platform == 'android':
+            request_permissions([
+                Permission.CAMERA,
+                Permission.BLUETOOTH,
+                Permission.BLUETOOTH_CONNECT,
+                Permission.BLUETOOTH_SCAN,
+                Permission.ACCESS_FINE_LOCATION,
+                Permission.ACCESS_COARSE_LOCATION,
+            ])
         return MenuDrawer()
 
 if __name__ == '__main__':
