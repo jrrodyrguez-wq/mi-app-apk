@@ -5,7 +5,7 @@ package.domain = com.jrrodriguez
 source.dir = .
 source.include_exts = py,png,jpg,kv,atlas,db,sqlite3,mp3
 version = 0.1
-requirements = python3,kivy,sqlite3,pyjnius,opencv,numpy,pyzbar
+requirements = python3,kivy,sqlite3,pyjnius,opencv,numpy,pyzbar,charset-normalizer<3.0.0
 orientation = portrait
 fullscreen = 0
 android.permissions = INTERNET, CAMERA, BLUETOOTH, BLUETOOTH_ADMIN, BLUETOOTH_CONNECT, BLUETOOTH_SCAN, ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION
@@ -13,7 +13,6 @@ android.api = 34
 android.minapi = 24
 android.archs = arm64-v8a
 android.accept_sdk_license = True
-p4a.pip_build_args = --no-binary charset-normalizer
 
 [buildozer]
 log_level = 2
